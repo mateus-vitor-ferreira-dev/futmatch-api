@@ -51,6 +51,7 @@ Clique em "Download ZIP"
 Extraia
 Abra a pasta no terminal
 ⚙️ Configuração do projeto
+
 1. Instalar dependências
 
 npm install
@@ -186,3 +187,5 @@ notificações
 integração mobile
 
 🔥 Em caso de dúvida, pergunte antes de alterar código.
+
+Olhem na pasta .vscode -> extensions.json: Extensões recomendadas!

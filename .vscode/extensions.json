@@ -1,0 +1,14 @@
+{
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "usernamehw.errorlens",
+    "eamodio.gitlens",
+    "rangav.vscode-thunder-client",
+    "wix.vscode-import-cost",
+    "Prisma.prisma",
+    "quicktype.quicktype",
+    "gruntfuggly.todo-tree",
+    "aaron-bond.better-comments"
+  ]
+}

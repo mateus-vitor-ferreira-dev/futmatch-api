@@ -1,0 +1,17 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run API",
+      "type": "shell",
+      "command": "npm run dev",
+      "problemMatcher": []
+    },
+    {
+      "label": "Prisma Migrate",
+      "type": "shell",
+      "command": "npx prisma migrate dev",
+      "problemMatcher": []
+    }
+  ]
+}

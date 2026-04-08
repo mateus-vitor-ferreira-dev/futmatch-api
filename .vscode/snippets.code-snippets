@@ -1,0 +1,14 @@
+{
+  "Express Controller": {
+    "prefix": "controller",
+    "body": [
+      "export const $1 = async (req, res) => {",
+      "  try {",
+      "    $2",
+      "  } catch (error) {",
+      "    next(error);",
+      "  }",
+      "};",
+    ],
+  },
+}

@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -10,4 +5,128 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum PeladaStatus {
+  WAITING   // Aguardando jogadores
+  FULL      // Vagas esgotadas
+  FINISHED  // Finalizada
+  CANCELLED // Cancelada pelo organizador
+}
+
+// Tags que um jogador pode receber numa avaliação
+enum ReviewTag {
+  CRAQUE_DA_PELADA  // Melhor da resenha
+  JOGA_FACIL        // Habilidoso, fácil de jogar junto
+  PASSA_DE_ANO      // Abaixo do esperado
+  PONTUAL           // Sempre no horário
+  FAIR_PLAY         // Jogo limpo, sem confusão
+  BOA_COMUNICACAO   // Se comunica bem em campo
+}
+
+// Conquistas exibidas no perfil — atribuídas pelo sistema automaticamente
+enum UserBadge {
+  CONFIAVEL       // Presença >= 90%
+  CRAQUE          // Nota média >= 4.5
+  ORGANIZADOR_NATO // 5 ou mais peladas criadas
+}
+
+// ---------------------------------------------------------------------------
+// Models
+// ---------------------------------------------------------------------------
+
+model User {
+  id        String     @id @default(cuid())
+  name      String
+  email     String     @unique
+  password  String?    // null quando o login é pelo Google
+  avatarUrl String?
+  pixKey    String?
+  badge     UserBadge?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  accounts        Account[]
+  peladasCreated  Pelada[]        @relation("OrganizerPeladas")
+  participations  Participation[]
+  reviewsGiven    Review[]        @relation("ReviewsGiven")
+  reviewsReceived Review[]        @relation("ReviewsReceived")
+}
+
+// Armazena contas OAuth (Google) e permite login híbrido
+model Account {
+  id                String   @id @default(cuid())
+  userId            String
+  provider          String   // "google"
+  providerAccountId String   // sub do token Google
+  accessToken       String?
+  refreshToken      String?
+  createdAt         DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+// Quadras pré-cadastradas pelo admin
+model Court {
+  id        String   @id @default(cuid())
+  name      String
+  address   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  peladas Pelada[]
+}
+
+model Pelada {
+  id          String       @id @default(cuid())
+  courtId     String
+  organizerId String
+  date        DateTime
+  maxPlayers  Int
+  totalValue  Decimal      @db.Decimal(10, 2)
+  pixKey      String
+  status      PeladaStatus @default(WAITING)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  court          Court           @relation(fields: [courtId], references: [id])
+  organizer      User            @relation("OrganizerPeladas", fields: [organizerId], references: [id])
+  participations Participation[]
+  reviews        Review[]
+}
+
+model Participation {
+  id       String   @id @default(cuid())
+  peladaId String
+  userId   String
+  attended Boolean? // null = pelada ainda não finalizada; true/false = presença confirmada
+  joinedAt DateTime @default(now())
+
+  pelada Pelada @relation(fields: [peladaId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([peladaId, userId])
+}
+
+model Review {
+  id         String    @id @default(cuid())
+  peladaId   String
+  reviewerId String
+  reviewedId String
+  stars      Int       // 1 a 5
+  tag        ReviewTag
+  comment    String?
+  createdAt  DateTime  @default(now())
+
+  pelada   Pelada @relation(fields: [peladaId], references: [id], onDelete: Cascade)
+  reviewer User   @relation("ReviewsGiven", fields: [reviewerId], references: [id])
+  reviewed User   @relation("ReviewsReceived", fields: [reviewedId], references: [id])
+
+  @@unique([peladaId, reviewerId, reviewedId])
 }

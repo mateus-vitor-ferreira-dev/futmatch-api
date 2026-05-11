@@ -11,7 +11,13 @@ export const authenticate = asyncHandler(async (req, res, next) => {
     }
 
     const token = header.split(" ")[1];
-    const payload = verifyToken(token);
+
+    let payload;
+    try {
+        payload = verifyToken(token);
+    } catch {
+        throw new AppError("Token inválido ou expirado", HTTP.UNAUTHORIZED, "INVALID_TOKEN");
+    }
 
     req.user = payload;
     next();

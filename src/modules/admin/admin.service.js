@@ -23,8 +23,9 @@ export async function updateUserRole(targetId, requesterId, role) {
     });
 }
 
-export async function listUsers() {
+export async function listUsers(role) {
     return prisma.user.findMany({
+        where: role ? { role } : undefined,
         orderBy: { createdAt: "desc" },
         select: {
             id: true,

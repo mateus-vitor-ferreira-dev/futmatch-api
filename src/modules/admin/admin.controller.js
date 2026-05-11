@@ -2,8 +2,8 @@ import { asyncHandler } from "../../utils/asyncHandler.js";
 import { success } from "../../utils/apiResponse.js";
 import * as adminService from "./admin.service.js";
 
-export const listUsers = asyncHandler(async (_req, res) => {
-    const users = await adminService.listUsers();
+export const listUsers = asyncHandler(async (req, res) => {
+    const users = await adminService.listUsers(req.validatedQuery?.role);
     return success(res, users);
 });
 

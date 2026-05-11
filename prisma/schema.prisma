@@ -18,7 +18,6 @@ enum PeladaStatus {
   CANCELLED // Cancelada pelo organizador
 }
 
-// Tags que um jogador pode receber numa avaliação
 enum ReviewTag {
   CRAQUE_DA_PELADA  // Melhor da resenha
   JOGA_FACIL        // Habilidoso, fácil de jogar junto
@@ -28,11 +27,34 @@ enum ReviewTag {
   BOA_COMUNICACAO   // Se comunica bem em campo
 }
 
+enum UserRole {
+  PLAYER
+  OWNER
+  ADMIN
+}
+
 // Conquistas exibidas no perfil — atribuídas pelo sistema automaticamente
 enum UserBadge {
-  CONFIAVEL       // Presença >= 90%
-  CRAQUE          // Nota média >= 4.5
+  CONFIAVEL        // Presença >= 90%
+  CRAQUE           // Nota média >= 4.5
   ORGANIZADOR_NATO // 5 ou mais peladas criadas
+}
+
+enum PlaceStatus {
+  OPEN
+  CLOSED
+}
+
+enum CourtType {
+  SOCIETY // Campo society (grama sintética, menor)
+  CAMPO   // Campo de futebol convencional
+  FUTSAL  // Quadra de futsal (coberta)
+  AREIA   // Quadra de areia (futevôlei/beach tennis/vôlei)
+}
+
+enum CourtStatus {
+  OPEN
+  CLOSED
 }
 
 // ---------------------------------------------------------------------------
@@ -46,11 +68,13 @@ model User {
   password  String?    // null quando o login é pelo Google
   avatarUrl String?
   pixKey    String?
+  role      UserRole   @default(PLAYER)
   badge     UserBadge?
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 
   accounts        Account[]
+  placesOwned     Place[]
   peladasCreated  Pelada[]        @relation("OrganizerPeladas")
   participations  Participation[]
   reviewsGiven    Review[]        @relation("ReviewsGiven")
@@ -72,14 +96,46 @@ model Account {
   @@unique([provider, providerAccountId])
 }
 
-// Quadras pré-cadastradas pelo admin
-model Court {
-  id        String   @id @default(cuid())
-  name      String
-  address   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+// Estabelecimento físico cadastrado pelo admin e gerenciado pelo OWNER
+model Place {
+  id           String      @id @default(cuid())
+  name         String
 
+  // Endereço estruturado para geocoding
+  street       String      // Nome da rua/avenida
+  number       String      // Número
+  complement   String?     // Bloco, sala, etc.
+  neighborhood String      // Bairro
+  city         String      // Cidade
+  state        String      // UF (ex: "SP")
+  zipCode      String      // CEP
+  country      String      @default("BR")
+
+  // Coordenadas preenchidas via Google Geocoding API
+  latitude     Float?
+  longitude    Float?
+
+  status       PlaceStatus @default(OPEN)
+  ownerId      String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  owner  User?   @relation(fields: [ownerId], references: [id])
+  courts Court[]
+}
+
+// Espaço de jogo dentro de um estabelecimento, gerenciado pelo OWNER
+model Court {
+  id           String      @id @default(cuid())
+  placeId      String
+  name         String      // "Quadra 1", "Campo Principal", etc.
+  type         CourtType
+  pricePerHour Decimal?    @db.Decimal(10, 2)
+  status       CourtStatus @default(OPEN)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  place   Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
   peladas Pelada[]
 }
 

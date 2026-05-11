@@ -19,10 +19,10 @@ export async function register({ name, email, password }) {
 
     const user = await prisma.user.create({
         data: { name, email, password: passwordHash },
-        select: { id: true, name: true, email: true, avatarUrl: true, badge: true, createdAt: true },
+        select: { id: true, name: true, email: true, avatarUrl: true, role: true, badge: true, createdAt: true },
     });
 
-    const token = signToken({ sub: user.id, name: user.name, email: user.email });
+    const token = signToken({ sub: user.id, name: user.name, email: user.email, role: user.role });
 
     return { user, token };
 }
@@ -40,7 +40,7 @@ export async function login({ email, password }) {
         throw new AppError("Credenciais inválidas", HTTP.UNAUTHORIZED, "INVALID_CREDENTIALS");
     }
 
-    const token = signToken({ sub: user.id, name: user.name, email: user.email });
+    const token = signToken({ sub: user.id, name: user.name, email: user.email, role: user.role });
 
     const { password: _, ...safeUser } = user;
 
@@ -81,7 +81,7 @@ export async function googleAuth({ idToken }) {
         }
     }
 
-    const token = signToken({ sub: user.id, name: user.name, email: user.email });
+    const token = signToken({ sub: user.id, name: user.name, email: user.email, role: user.role });
 
     const { password: _, ...safeUser } = user;
 
@@ -97,6 +97,7 @@ export async function getMe(userId) {
             email: true,
             avatarUrl: true,
             pixKey: true,
+            role: true,
             badge: true,
             createdAt: true,
             _count: {

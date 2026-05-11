@@ -5,3 +5,7 @@ export function success(res, data, statusCode = 200) {
 export function created(res, data) {
     return success(res, data, 201);
 }
+
+export function noContent(res) {
+    return res.status(204).send();
+}

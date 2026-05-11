@@ -1,6 +1,6 @@
 import * as yup from "yup";
 
-const COURT_TYPES = ["SOCIETY", "CAMPO", "FUTSAL", "AREIA"];
+const COURT_TYPES = ["SOCIETY", "CAMPO", "FUTSAL", "AREIA", "VOLEI", "VOLEI_AREIA", "HANDBALL", "PETECA", "BEACH_TENNIS", "BASQUETE", "TENIS"];
 const COURT_STATUSES = ["OPEN", "CLOSED"];
 
 export const createCourtSchema = yup.object({

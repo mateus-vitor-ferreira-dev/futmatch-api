@@ -46,10 +46,17 @@ enum PlaceStatus {
 }
 
 enum CourtType {
-  SOCIETY // Campo society (grama sintética, menor)
-  CAMPO   // Campo de futebol convencional
-  FUTSAL  // Quadra de futsal (coberta)
-  AREIA   // Quadra de areia (futevôlei/beach tennis/vôlei)
+  SOCIETY      // Campo society (grama sintética, menor)
+  CAMPO        // Campo de futebol convencional
+  FUTSAL       // Quadra de futsal (coberta)
+  AREIA        // Quadra de areia (futevôlei)
+  VOLEI        // Quadra de vôlei indoor
+  VOLEI_AREIA  // Quadra de vôlei de areia
+  HANDBALL     // Quadra de handball
+  PETECA       // Quadra de peteca
+  BEACH_TENNIS // Quadra de beach tennis
+  BASQUETE     // Quadra de basquete
+  TENIS        // Quadra de tênis
 }
 
 enum CourtStatus {

@@ -21,9 +21,9 @@ describe("Places", () => {
     beforeAll(async () => {
         await truncateAll();
         [admin, owner, player] = await Promise.all([
-            createUser({ role: "ADMIN", email: "admin-places@test.com" }),
-            createUser({ role: "OWNER", email: "owner-places@test.com" }),
-            createUser({ role: "PLAYER", email: "player-places@test.com" }),
+            createUser({ role: "ADMIN" }),
+            createUser({ role: "OWNER" }),
+            createUser({ role: "PLAYER" }),
         ]);
         adminToken = tokenFor(admin);
         ownerToken = tokenFor(owner);
@@ -138,7 +138,7 @@ describe("Places", () => {
         beforeAll(async () => {
             [place, newOwner] = await Promise.all([
                 createPlace(),
-                createUser({ role: "OWNER", email: "new-owner@test.com" }),
+                createUser({ role: "OWNER" }),
             ]);
         });
 

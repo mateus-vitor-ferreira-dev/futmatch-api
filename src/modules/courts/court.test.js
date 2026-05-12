@@ -12,9 +12,9 @@ describe("Courts", () => {
     beforeAll(async () => {
         await truncateAll();
         [admin, owner, player] = await Promise.all([
-            createUser({ role: "ADMIN", email: "admin-courts@test.com" }),
-            createUser({ role: "OWNER", email: "owner-courts@test.com" }),
-            createUser({ role: "PLAYER", email: "player-courts@test.com" }),
+            createUser({ role: "ADMIN" }),
+            createUser({ role: "OWNER" }),
+            createUser({ role: "PLAYER" }),
         ]);
         adminToken = tokenFor(admin);
         ownerToken = tokenFor(owner);

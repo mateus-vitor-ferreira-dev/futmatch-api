@@ -19,15 +19,15 @@ describe("Events (Peladas)", () => {
     beforeAll(async () => {
         await truncateAll();
         [admin, organizer, player] = await Promise.all([
-            createUser({ role: "ADMIN", email: "admin-events@test.com" }),
-            createUser({ role: "PLAYER", email: "organizer-events@test.com" }),
-            createUser({ role: "PLAYER", email: "player-events@test.com" }),
+            createUser({ role: "ADMIN" }),
+            createUser({ role: "PLAYER" }),
+            createUser({ role: "PLAYER" }),
         ]);
         adminToken = tokenFor(admin);
         organizerToken = tokenFor(organizer);
         playerToken = tokenFor(player);
 
-        const owner = await createUser({ role: "OWNER", email: "owner-events@test.com" });
+        const owner = await createUser({ role: "OWNER" });
         place = await createPlace({ ownerId: owner.id });
         court = await createCourt({ placeId: place.id });
     });

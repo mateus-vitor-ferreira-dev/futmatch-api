@@ -11,8 +11,8 @@ describe("Admin", () => {
     beforeAll(async () => {
         await truncateAll();
         [admin, player] = await Promise.all([
-            createUser({ role: "ADMIN", email: "admin-admin@test.com" }),
-            createUser({ role: "PLAYER", email: "player-admin@test.com" }),
+            createUser({ role: "ADMIN" }),
+            createUser({ role: "PLAYER" }),
         ]);
         adminToken = tokenFor(admin);
         playerToken = tokenFor(player);
@@ -48,7 +48,7 @@ describe("Admin", () => {
 
     describe("PATCH /admin/users/:id/role", () => {
         it("admin promove player para owner", async () => {
-            const target = await createUser({ role: "PLAYER", email: "target-role@test.com" });
+            const target = await createUser({ role: "PLAYER" });
 
             const res = await request(app)
                 .patch(`/admin/users/${target.id}/role`)
@@ -60,7 +60,7 @@ describe("Admin", () => {
         });
 
         it("retorna 422 com role inválido", async () => {
-            const target = await createUser({ role: "PLAYER", email: "target-invalid@test.com" });
+            const target = await createUser({ role: "PLAYER" });
 
             const res = await request(app)
                 .patch(`/admin/users/${target.id}/role`)
@@ -71,7 +71,7 @@ describe("Admin", () => {
         });
 
         it("player não consegue mudar role (403)", async () => {
-            const target = await createUser({ role: "PLAYER", email: "target-forbidden@test.com" });
+            const target = await createUser({ role: "PLAYER" });
 
             const res = await request(app)
                 .patch(`/admin/users/${target.id}/role`)

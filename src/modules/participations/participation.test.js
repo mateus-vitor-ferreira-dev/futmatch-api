@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll } from "vitest";
 import request from "supertest";
 import app from "../../app.js";
 import prisma from "../../config/prisma.js";
+import { truncateAll } from "../../tests/setupTests.js";
 import {
     createUser,
     createPlace,
@@ -16,6 +17,7 @@ describe("Participations", () => {
     let court;
 
     beforeAll(async () => {
+        await truncateAll();
         [organizer, player1, player2] = await Promise.all([
             createUser({ role: "PLAYER", email: "org-part@test.com" }),
             createUser({ role: "PLAYER", email: "p1-part@test.com" }),

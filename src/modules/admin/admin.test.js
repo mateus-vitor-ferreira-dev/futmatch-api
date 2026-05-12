@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import request from "supertest";
 import app from "../../app.js";
+import { truncateAll } from "../../tests/setupTests.js";
 import { createUser, tokenFor } from "../../tests/helpers/factories.js";
 
 describe("Admin", () => {
@@ -8,6 +9,7 @@ describe("Admin", () => {
     let adminToken, playerToken;
 
     beforeAll(async () => {
+        await truncateAll();
         [admin, player] = await Promise.all([
             createUser({ role: "ADMIN", email: "admin-admin@test.com" }),
             createUser({ role: "PLAYER", email: "player-admin@test.com" }),

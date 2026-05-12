@@ -18,13 +18,7 @@ router.get("/:eventId", eventController.getOne);
 
 router.post("/", authenticate, validate(createEventSchema), eventController.create);
 
-router.patch(
-    "/:eventId",
-    authenticate,
-    isOrganizerOrAdmin,
-    validate(updateEventSchema),
-    eventController.update,
-);
+router.patch("/:eventId", authenticate, isOrganizerOrAdmin, validate(updateEventSchema), eventController.update);
 
 router.patch(
     "/:eventId/status",

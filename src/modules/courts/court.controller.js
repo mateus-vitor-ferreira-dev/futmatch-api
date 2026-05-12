@@ -1,5 +1,5 @@
 import { asyncHandler } from "../../utils/asyncHandler.js";
-import { success, created, noContent } from "../../utils/apiResponse.js";
+import { success, created } from "../../utils/apiResponse.js";
 import * as courtService from "./court.service.js";
 
 export const listByPlace = asyncHandler(async (req, res) => {

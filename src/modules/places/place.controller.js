@@ -27,7 +27,6 @@ export const updateStatus = asyncHandler(async (req, res) => {
     return success(res, place);
 });
 
-
 export const assignOwner = asyncHandler(async (req, res) => {
     const place = await placeService.assignOwner(req.params.id, req.body.ownerId);
     return success(res, place);

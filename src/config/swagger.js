@@ -1,6 +1,18 @@
 import swaggerJsdoc from "swagger-jsdoc";
 
-const COURT_TYPES = ["SOCIETY", "CAMPO", "FUTSAL", "AREIA", "VOLEI", "VOLEI_AREIA", "HANDBALL", "PETECA", "BEACH_TENNIS", "BASQUETE", "TENIS"];
+const COURT_TYPES = [
+    "SOCIETY",
+    "CAMPO",
+    "FUTSAL",
+    "AREIA",
+    "VOLEI",
+    "VOLEI_AREIA",
+    "HANDBALL",
+    "PETECA",
+    "BEACH_TENNIS",
+    "BASQUETE",
+    "TENIS",
+];
 
 const definition = {
     openapi: "3.0.0",
@@ -437,7 +449,11 @@ const definition = {
                 summary: "Lista peladas de uma quadra",
                 parameters: [
                     { name: "courtId", in: "path", required: true, schema: { type: "string" } },
-                    { name: "status", in: "query", schema: { type: "string", enum: ["WAITING", "FULL", "FINISHED", "CANCELLED"] } },
+                    {
+                        name: "status",
+                        in: "query",
+                        schema: { type: "string", enum: ["WAITING", "FULL", "FINISHED", "CANCELLED"] },
+                    },
                     { name: "from", in: "query", schema: { type: "string", format: "date-time" } },
                     { name: "to", in: "query", schema: { type: "string", format: "date-time" } },
                 ],
@@ -516,7 +532,11 @@ const definition = {
                 tags: ["Events"],
                 summary: "Busca global de peladas com filtros",
                 parameters: [
-                    { name: "status", in: "query", schema: { type: "string", enum: ["WAITING", "FULL", "FINISHED", "CANCELLED"] } },
+                    {
+                        name: "status",
+                        in: "query",
+                        schema: { type: "string", enum: ["WAITING", "FULL", "FINISHED", "CANCELLED"] },
+                    },
                     { name: "from", in: "query", schema: { type: "string", format: "date-time" } },
                     { name: "to", in: "query", schema: { type: "string", format: "date-time" } },
                     { name: "city", in: "query", schema: { type: "string" } },
@@ -532,7 +552,11 @@ const definition = {
                 summary: "Lista peladas criadas pelo usuário autenticado",
                 security: [{ PlayerToken: [] }, { OwnerToken: [] }, { AdminToken: [] }],
                 parameters: [
-                    { name: "status", in: "query", schema: { type: "string", enum: ["WAITING", "FULL", "FINISHED", "CANCELLED"] } },
+                    {
+                        name: "status",
+                        in: "query",
+                        schema: { type: "string", enum: ["WAITING", "FULL", "FINISHED", "CANCELLED"] },
+                    },
                 ],
                 responses: { 200: { description: "Peladas criadas" } },
             },
@@ -543,7 +567,11 @@ const definition = {
                 summary: "Lista peladas em que o usuário autenticado participa",
                 security: [{ PlayerToken: [] }, { OwnerToken: [] }, { AdminToken: [] }],
                 parameters: [
-                    { name: "status", in: "query", schema: { type: "string", enum: ["WAITING", "FULL", "FINISHED", "CANCELLED"] } },
+                    {
+                        name: "status",
+                        in: "query",
+                        schema: { type: "string", enum: ["WAITING", "FULL", "FINISHED", "CANCELLED"] },
+                    },
                 ],
                 responses: { 200: { description: "Peladas que participa" } },
             },

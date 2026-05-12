@@ -1,6 +1,18 @@
 import * as yup from "yup";
 
-const COURT_TYPES = ["SOCIETY", "CAMPO", "FUTSAL", "AREIA", "VOLEI", "VOLEI_AREIA", "HANDBALL", "PETECA", "BEACH_TENNIS", "BASQUETE", "TENIS"];
+const COURT_TYPES = [
+    "SOCIETY",
+    "CAMPO",
+    "FUTSAL",
+    "AREIA",
+    "VOLEI",
+    "VOLEI_AREIA",
+    "HANDBALL",
+    "PETECA",
+    "BEACH_TENNIS",
+    "BASQUETE",
+    "TENIS",
+];
 const COURT_STATUSES = ["OPEN", "CLOSED"];
 
 export const createCourtSchema = yup.object({
@@ -16,10 +28,7 @@ export const updateCourtSchema = yup.object({
 });
 
 export const updateCourtStatusSchema = yup.object({
-    status: yup
-        .string()
-        .oneOf(COURT_STATUSES, "Status inválido")
-        .required("Status é obrigatório"),
+    status: yup.string().oneOf(COURT_STATUSES, "Status inválido").required("Status é obrigatório"),
 });
 
 export const listCourtsQuerySchema = yup.object({

@@ -25,10 +25,21 @@ export async function approve(id) {
     const request = await findOrFail(id);
 
     if (request.status !== "PENDING") {
-        throw new AppError("Apenas solicitações pendentes podem ser aprovadas", HTTP.BAD_REQUEST, "REQUEST_NOT_PENDING");
+        throw new AppError(
+            "Apenas solicitações pendentes podem ser aprovadas",
+            HTTP.BAD_REQUEST,
+            "REQUEST_NOT_PENDING",
+        );
     }
 
-    const { owner, status, adminNote, createdAt, updatedAt, ...placeData } = request;
+    const {
+        owner,
+        status: _status,
+        adminNote: _adminNote,
+        createdAt: _createdAt,
+        updatedAt: _updatedAt,
+        ...placeData
+    } = request;
 
     await placeRepo.create({ ...placeData, ownerId: owner.id });
 
@@ -39,7 +50,11 @@ export async function reject(id, adminNote) {
     const request = await findOrFail(id);
 
     if (request.status !== "PENDING") {
-        throw new AppError("Apenas solicitações pendentes podem ser rejeitadas", HTTP.BAD_REQUEST, "REQUEST_NOT_PENDING");
+        throw new AppError(
+            "Apenas solicitações pendentes podem ser rejeitadas",
+            HTTP.BAD_REQUEST,
+            "REQUEST_NOT_PENDING",
+        );
     }
 
     return repo.update(id, { status: "REJECTED", adminNote: adminNote ?? null });

@@ -46,14 +46,19 @@ router.get("/events", validateQuery(searchEventsQuerySchema), eventController.se
 
 // Peladas do usuário autenticado
 router.get("/events/my/created", authenticate, validateQuery(myPeladasQuerySchema), participationController.myCreated);
-router.get("/events/my/participating", authenticate, validateQuery(myPeladasQuerySchema), participationController.myParticipations);
+router.get(
+    "/events/my/participating",
+    authenticate,
+    validateQuery(myPeladasQuerySchema),
+    participationController.myParticipations,
+);
 
 // --- SUA ROTA 404 (Sempre no final) ---
 router.use((_req, res) => {
     res.status(404).json({
         success: false,
         message: "Rota não encontrada",
-        error: "404 Not Found"
+        error: "404 Not Found",
     });
 });
 

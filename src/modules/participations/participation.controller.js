@@ -1,13 +1,9 @@
 import { asyncHandler } from "../../utils/asyncHandler.js";
-import { success, created, noContent } from "../../utils/apiResponse.js";
+import { success, created } from "../../utils/apiResponse.js";
 import * as participationService from "./participation.service.js";
 
 export const join = asyncHandler(async (req, res) => {
-    const participation = await participationService.joinPelada(
-        req.params.eventId,
-        req.params.courtId,
-        req.user.sub,
-    );
+    const participation = await participationService.joinPelada(req.params.eventId, req.params.courtId, req.user.sub);
     return created(res, participation);
 });
 

@@ -12,5 +12,12 @@ router.get("/health", (_req, res) => {
         },
     });
 });
+router.use((_req, res) => {
+    res.status(404).json({
+        success: false,
+        message: "Rota não encontrada",
+        error: "404 Not Found"
 
+    });
+});
 export default router;

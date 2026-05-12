@@ -1,5 +1,7 @@
 ⚽ FutMatch API
 
+![CI](https://github.com/mateus-vitor-ferreira-dev/futmatch-api/actions/workflows/ci.yml/badge.svg)
+
 API REST do FutMatch — plataforma para organização de eventos esportivos.
 
 🚀 Tecnologias

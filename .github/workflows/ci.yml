@@ -2,56 +2,36 @@ name: CI - FutMatch API
 
 on:
   push:
-    branches:
-      - main
-      - develop
+    branches: [main, develop]
   pull_request:
-    branches:
-      - main
-      - develop
+    branches: [main, develop]
 
 jobs:
-  build-and-test:
+  test:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:15
-        ports:
-          - 5432:5432
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: futmatch_test
-        options: >-
-          --health-cmd="pg_isready -U postgres"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
     env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/futmatch_test
-      JWT_SECRET: test_secret
+      DATABASE_URL_TEST: ${{ secrets.DATABASE_URL_TEST }}
+      DIRECT_URL_TEST: ${{ secrets.DIRECT_URL_TEST }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
       JWT_EXPIRES_IN: 1d
       NODE_ENV: test
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Generate Prisma client
         run: npx prisma generate
 
-      - name: Run migrations
-        run: npx prisma migrate deploy
-
-      - name: Run tests (placeholder)
-        run: echo "No tests yet"
+      - name: Run tests
+        run: npm test

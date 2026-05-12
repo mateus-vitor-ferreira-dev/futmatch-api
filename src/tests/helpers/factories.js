@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import bcrypt from "bcrypt";
 import prisma from "../../config/prisma.js";
 import { signToken } from "../../config/jwt.js";
@@ -8,7 +9,7 @@ export async function createUser({ role = "PLAYER", email, name, ...rest } = {})
     const user = await prisma.user.create({
         data: {
             name: name ?? `User ${role}`,
-            email: email ?? `${role.toLowerCase()}-${Date.now()}@test.com`,
+            email: email ?? `${role.toLowerCase()}-${randomUUID()}@test.com`,
             password: await bcrypt.hash(TEST_PASSWORD, 10),
             role,
             ...rest,

@@ -13,6 +13,7 @@ import { searchEventsQuerySchema } from "../modules/events/event.validator.js";
 import * as eventController from "../modules/events/event.controller.js";
 import { myPeladasQuerySchema } from "../modules/participations/participation.validator.js";
 import * as participationController from "../modules/participations/participation.controller.js";
+import { SPORTS } from "../constants/sports.js";
 
 const router = Router();
 
@@ -21,6 +22,11 @@ router.get("/health", (_req, res) => {
         success: true,
         data: { status: "ok", service: "futmatch-api" },
     });
+});
+
+// Modalidades disponíveis no app (público)
+router.get("/sports", (_req, res) => {
+    res.status(200).json({ success: true, data: SPORTS });
 });
 
 router.use("/auth", authRoutes);

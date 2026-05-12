@@ -64,6 +64,12 @@ enum CourtStatus {
   CLOSED
 }
 
+enum PlaceRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 // ---------------------------------------------------------------------------
 // Models
 // ---------------------------------------------------------------------------
@@ -82,6 +88,7 @@ model User {
 
   accounts        Account[]
   placesOwned     Place[]
+  placeRequests   PlaceRequest[]
   peladasCreated  Pelada[]        @relation("OrganizerPeladas")
   participations  Participation[]
   reviewsGiven    Review[]        @relation("ReviewsGiven")
@@ -175,6 +182,29 @@ model Participation {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([peladaId, userId])
+}
+
+// Solicitação de cadastro de um novo Place feita por um OWNER — aprovada ou rejeitada pelo Admin
+model PlaceRequest {
+  id           String             @id @default(cuid())
+  ownerId      String
+  name         String
+  street       String
+  number       String
+  complement   String?
+  neighborhood String
+  city         String
+  state        String
+  zipCode      String
+  country      String             @default("BR")
+  latitude     Float?
+  longitude    Float?
+  status       PlaceRequestStatus @default(PENDING)
+  adminNote    String?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 }
 
 model Review {

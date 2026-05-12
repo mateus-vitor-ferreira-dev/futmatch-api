@@ -13,7 +13,11 @@
     "prisma:seed": "tsx prisma/seed.js",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "format": "prettier --write src",
+    "format:check": "prettier --check src"
   },
   "keywords": [],
   "author": "",
@@ -36,8 +40,13 @@
     "yup": "^1.7.1"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@vitest/coverage-v8": "^4.1.6",
+    "eslint": "^10.3.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.6.0",
     "nodemon": "^3.1.14",
+    "prettier": "^3.8.3",
     "supertest": "^7.2.2",
     "tsx": "^4.21.0",
     "vitest": "^4.1.6"

@@ -55,28 +55,19 @@ describe("Places", () => {
 
     describe("POST /places", () => {
         it("admin cria lugar com sucesso", async () => {
-            const res = await request(app)
-                .post("/places")
-                .set("Authorization", adminToken)
-                .send(placePayload);
+            const res = await request(app).post("/places").set("Authorization", adminToken).send(placePayload);
 
             expect(res.status).toBe(201);
             expect(res.body.data.name).toBe(placePayload.name);
         });
 
         it("player não consegue criar lugar (403)", async () => {
-            const res = await request(app)
-                .post("/places")
-                .set("Authorization", playerToken)
-                .send(placePayload);
+            const res = await request(app).post("/places").set("Authorization", playerToken).send(placePayload);
             expect(res.status).toBe(403);
         });
 
         it("owner não consegue criar lugar (403)", async () => {
-            const res = await request(app)
-                .post("/places")
-                .set("Authorization", ownerToken)
-                .send(placePayload);
+            const res = await request(app).post("/places").set("Authorization", ownerToken).send(placePayload);
             expect(res.status).toBe(403);
         });
 

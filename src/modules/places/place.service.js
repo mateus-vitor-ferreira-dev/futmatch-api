@@ -21,9 +21,20 @@ export function createPlace(data) {
 }
 
 export function updatePlace(place, data) {
-    const allowed = ["name", "street", "number", "complement", "neighborhood", "city", "state", "zipCode", "latitude", "longitude"];
+    const allowed = [
+        "name",
+        "street",
+        "number",
+        "complement",
+        "neighborhood",
+        "city",
+        "state",
+        "zipCode",
+        "latitude",
+        "longitude",
+    ];
     const updateData = Object.fromEntries(
-        Object.entries(data).filter(([key]) => allowed.includes(key) && data[key] !== undefined)
+        Object.entries(data).filter(([key]) => allowed.includes(key) && data[key] !== undefined),
     );
     return placeRepository.update(place.id, updateData);
 }
@@ -31,7 +42,6 @@ export function updatePlace(place, data) {
 export function updateStatus(place, status) {
     return placeRepository.update(place.id, { status });
 }
-
 
 export async function assignOwner(placeId, ownerId) {
     const user = await placeRepository.findUserById(ownerId);
@@ -44,7 +54,7 @@ export async function assignOwner(placeId, ownerId) {
         throw new AppError(
             "O usuário precisa ter o role OWNER para ser atribuído a um estabelecimento",
             HTTP.BAD_REQUEST,
-            "USER_NOT_OWNER"
+            "USER_NOT_OWNER",
         );
     }
 

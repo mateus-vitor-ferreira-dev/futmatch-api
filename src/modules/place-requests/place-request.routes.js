@@ -3,11 +3,7 @@ import { authenticate } from "../../middlewares/auth.middleware.js";
 import { isAdmin } from "../../middlewares/admin.middleware.js";
 import { isOwnerOrAdmin } from "../../middlewares/admin.middleware.js";
 import { validate, validateQuery } from "../../middlewares/validate.middleware.js";
-import {
-    createPlaceRequestSchema,
-    rejectPlaceRequestSchema,
-    listRequestsQuerySchema,
-} from "./place-request.schema.js";
+import { createPlaceRequestSchema, rejectPlaceRequestSchema, listRequestsQuerySchema } from "./place-request.schema.js";
 import * as controller from "./place-request.controller.js";
 
 const router = Router();

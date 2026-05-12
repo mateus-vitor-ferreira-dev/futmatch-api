@@ -17,21 +17,9 @@ const router = Router({ mergeParams: true });
 router.get("/", validateQuery(listCourtsQuerySchema), courtController.listByPlace);
 router.get("/:courtId", courtController.getOne);
 
-router.post(
-    "/",
-    authenticate,
-    isPlaceOwnerOrAdmin("placeId"),
-    validate(createCourtSchema),
-    courtController.create,
-);
+router.post("/", authenticate, isPlaceOwnerOrAdmin("placeId"), validate(createCourtSchema), courtController.create);
 
-router.patch(
-    "/:courtId",
-    authenticate,
-    isCourtPlaceOwnerOrAdmin,
-    validate(updateCourtSchema),
-    courtController.update,
-);
+router.patch("/:courtId", authenticate, isCourtPlaceOwnerOrAdmin, validate(updateCourtSchema), courtController.update);
 
 router.patch(
     "/:courtId/status",

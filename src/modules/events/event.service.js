@@ -20,7 +20,8 @@ export async function getEvent(id) {
 export async function createEvent(courtId, organizerId, data) {
     const court = await eventRepository.findCourt(courtId);
     if (!court) throw new AppError(EVENT_MESSAGES.COURT_NOT_FOUND, HTTP.NOT_FOUND, "COURT_NOT_FOUND");
-    if (court.status === "CLOSED") throw new AppError(EVENT_MESSAGES.COURT_CLOSED, HTTP.UNPROCESSABLE_ENTITY, "COURT_CLOSED");
+    if (court.status === "CLOSED")
+        throw new AppError(EVENT_MESSAGES.COURT_CLOSED, HTTP.UNPROCESSABLE_ENTITY, "COURT_CLOSED");
 
     const conflict = await eventRepository.findTimeConflict(courtId, new Date(data.date));
     if (conflict) throw new AppError(EVENT_MESSAGES.TIME_CONFLICT, HTTP.CONFLICT, "EVENT_TIME_CONFLICT");
@@ -38,7 +39,7 @@ export async function updateEvent(event, data, actorId) {
 
     const allowed = ["date", "maxPlayers", "totalValue", "pixKey"];
     const updateData = Object.fromEntries(
-        Object.entries(data).filter(([key]) => allowed.includes(key) && data[key] !== undefined)
+        Object.entries(data).filter(([key]) => allowed.includes(key) && data[key] !== undefined),
     );
 
     if (updateData.date) {

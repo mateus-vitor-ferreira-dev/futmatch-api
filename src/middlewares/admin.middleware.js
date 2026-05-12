@@ -7,3 +7,11 @@ export function isAdmin(req, _res, next) {
     }
     next();
 }
+
+export function isOwnerOrAdmin(req, _res, next) {
+    const { role } = req.user ?? {};
+    if (role !== "OWNER" && role !== "ADMIN") {
+        throw new AppError("Acesso restrito a proprietários", HTTP.FORBIDDEN, "FORBIDDEN");
+    }
+    next();
+}

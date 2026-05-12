@@ -1,0 +1,636 @@
+import swaggerJsdoc from "swagger-jsdoc";
+
+const COURT_TYPES = ["SOCIETY", "CAMPO", "FUTSAL", "AREIA", "VOLEI", "VOLEI_AREIA", "HANDBALL", "PETECA", "BEACH_TENNIS", "BASQUETE", "TENIS"];
+
+const definition = {
+    openapi: "3.0.0",
+    info: {
+        title: "FutMatch API",
+        version: "1.0.0",
+        description: "API do FutMatch — plataforma de agendamento de peladas e quadras esportivas.",
+    },
+    servers: [{ url: "http://localhost:3000", description: "Local" }],
+    components: {
+        securitySchemes: {
+            PlayerToken: {
+                type: "http",
+                scheme: "bearer",
+                bearerFormat: "JWT",
+                description: "Token de um usuário com role **PLAYER**",
+            },
+            OwnerToken: {
+                type: "http",
+                scheme: "bearer",
+                bearerFormat: "JWT",
+                description: "Token de um usuário com role **OWNER**",
+            },
+            AdminToken: {
+                type: "http",
+                scheme: "bearer",
+                bearerFormat: "JWT",
+                description: "Token de um usuário com role **ADMIN**",
+            },
+        },
+        schemas: {
+            // ── Auth ────────────────────────────────────────────────────────
+            RegisterBody: {
+                type: "object",
+                required: ["name", "email", "password", "confirmPassword"],
+                properties: {
+                    name: { type: "string", example: "João Silva" },
+                    email: { type: "string", format: "email", example: "joao@email.com" },
+                    password: { type: "string", minLength: 6, example: "senha123" },
+                    confirmPassword: { type: "string", example: "senha123" },
+                },
+            },
+            LoginBody: {
+                type: "object",
+                required: ["email", "password"],
+                properties: {
+                    email: { type: "string", format: "email", example: "joao@email.com" },
+                    password: { type: "string", example: "senha123" },
+                },
+            },
+            GoogleAuthBody: {
+                type: "object",
+                required: ["idToken"],
+                properties: {
+                    idToken: { type: "string", example: "eyJhbGci..." },
+                },
+            },
+            // ── Place ───────────────────────────────────────────────────────
+            PlaceBody: {
+                type: "object",
+                required: ["name", "street", "number", "neighborhood", "city", "state", "zipCode"],
+                properties: {
+                    name: { type: "string", example: "Arena FutMatch" },
+                    street: { type: "string", example: "Rua das Flores" },
+                    number: { type: "string", example: "123" },
+                    complement: { type: "string", example: "Bloco A" },
+                    neighborhood: { type: "string", example: "Centro" },
+                    city: { type: "string", example: "São Paulo" },
+                    state: { type: "string", minLength: 2, maxLength: 2, example: "SP" },
+                    zipCode: { type: "string", example: "01310-100" },
+                    country: { type: "string", default: "BR" },
+                },
+            },
+            UpdatePlaceBody: {
+                type: "object",
+                properties: {
+                    name: { type: "string" },
+                    street: { type: "string" },
+                    number: { type: "string" },
+                    complement: { type: "string", nullable: true },
+                    neighborhood: { type: "string" },
+                    city: { type: "string" },
+                    state: { type: "string", minLength: 2, maxLength: 2 },
+                    zipCode: { type: "string" },
+                    latitude: { type: "number" },
+                    longitude: { type: "number" },
+                },
+            },
+            PlaceStatusBody: {
+                type: "object",
+                required: ["status"],
+                properties: {
+                    status: { type: "string", enum: ["OPEN", "CLOSED"] },
+                },
+            },
+            AssignOwnerBody: {
+                type: "object",
+                required: ["ownerId"],
+                properties: {
+                    ownerId: { type: "string", example: "uuid-do-owner" },
+                },
+            },
+            // ── Court ───────────────────────────────────────────────────────
+            CourtBody: {
+                type: "object",
+                required: ["name", "type"],
+                properties: {
+                    name: { type: "string", example: "Quadra 1" },
+                    type: { type: "string", enum: COURT_TYPES },
+                    pricePerHour: { type: "number", example: 120.0, nullable: true },
+                },
+            },
+            UpdateCourtBody: {
+                type: "object",
+                properties: {
+                    name: { type: "string" },
+                    type: { type: "string", enum: COURT_TYPES },
+                    pricePerHour: { type: "number", nullable: true },
+                },
+            },
+            CourtStatusBody: {
+                type: "object",
+                required: ["status"],
+                properties: {
+                    status: { type: "string", enum: ["OPEN", "CLOSED"] },
+                },
+            },
+            // ── Event ───────────────────────────────────────────────────────
+            EventBody: {
+                type: "object",
+                required: ["date", "maxPlayers", "totalValue", "pixKey"],
+                properties: {
+                    date: { type: "string", format: "date-time", example: "2026-06-01T18:00:00.000Z" },
+                    maxPlayers: { type: "integer", minimum: 2, example: 14 },
+                    totalValue: { type: "number", example: 200.0 },
+                    pixKey: { type: "string", example: "joao@email.com" },
+                },
+            },
+            UpdateEventBody: {
+                type: "object",
+                properties: {
+                    date: { type: "string", format: "date-time" },
+                    maxPlayers: { type: "integer", minimum: 2 },
+                    totalValue: { type: "number" },
+                    pixKey: { type: "string" },
+                },
+            },
+            EventStatusBody: {
+                type: "object",
+                required: ["status"],
+                properties: {
+                    status: { type: "string", enum: ["FINISHED", "CANCELLED"] },
+                },
+            },
+            // ── Participation ───────────────────────────────────────────────
+            LeaveBody: {
+                type: "object",
+                properties: {
+                    reason: { type: "string", maxLength: 200, example: "Compromisso de última hora" },
+                },
+            },
+            AttendanceBody: {
+                type: "object",
+                required: ["attended"],
+                properties: {
+                    attended: { type: "boolean", example: true },
+                },
+            },
+            // ── Admin ───────────────────────────────────────────────────────
+            UpdateRoleBody: {
+                type: "object",
+                required: ["role"],
+                properties: {
+                    role: { type: "string", enum: ["PLAYER", "OWNER", "ADMIN"] },
+                },
+            },
+        },
+    },
+    paths: {
+        // ── Health ──────────────────────────────────────────────────────────
+        "/health": {
+            get: {
+                tags: ["Health"],
+                summary: "Verifica se a API está online",
+                responses: {
+                    200: { description: "API funcionando" },
+                },
+            },
+        },
+
+        // ── Auth ────────────────────────────────────────────────────────────
+        "/auth/register": {
+            post: {
+                tags: ["Auth"],
+                summary: "Cria uma nova conta",
+                requestBody: {
+                    required: true,
+                    content: { "application/json": { schema: { $ref: "#/components/schemas/RegisterBody" } } },
+                },
+                responses: {
+                    201: { description: "Conta criada com sucesso" },
+                    400: { description: "Dados inválidos" },
+                    409: { description: "E-mail já cadastrado" },
+                },
+            },
+        },
+        "/auth/login": {
+            post: {
+                tags: ["Auth"],
+                summary: "Faz login com e-mail e senha",
+                requestBody: {
+                    required: true,
+                    content: { "application/json": { schema: { $ref: "#/components/schemas/LoginBody" } } },
+                },
+                responses: {
+                    200: { description: "Login realizado, retorna token JWT" },
+                    401: { description: "Credenciais inválidas" },
+                },
+            },
+        },
+        "/auth/google": {
+            post: {
+                tags: ["Auth"],
+                summary: "Login/cadastro via Google OAuth",
+                requestBody: {
+                    required: true,
+                    content: { "application/json": { schema: { $ref: "#/components/schemas/GoogleAuthBody" } } },
+                },
+                responses: {
+                    200: { description: "Autenticado com sucesso" },
+                    401: { description: "Token do Google inválido" },
+                },
+            },
+        },
+        "/auth/me": {
+            get: {
+                tags: ["Auth"],
+                summary: "Retorna dados do usuário autenticado",
+                security: [{ PlayerToken: [] }, { OwnerToken: [] }, { AdminToken: [] }],
+                responses: {
+                    200: { description: "Dados do usuário" },
+                    401: { description: "Não autenticado" },
+                },
+            },
+        },
+
+        // ── Places ──────────────────────────────────────────────────────────
+        "/places": {
+            get: {
+                tags: ["Places"],
+                summary: "Lista todos os lugares",
+                responses: { 200: { description: "Lista de lugares" } },
+            },
+            post: {
+                tags: ["Places"],
+                summary: "Cria um lugar (admin)",
+                security: [{ AdminToken: [] }],
+                requestBody: {
+                    required: true,
+                    content: { "application/json": { schema: { $ref: "#/components/schemas/PlaceBody" } } },
+                },
+                responses: {
+                    201: { description: "Lugar criado" },
+                    403: { description: "Sem permissão" },
+                },
+            },
+        },
+        "/places/{id}": {
+            get: {
+                tags: ["Places"],
+                summary: "Busca um lugar por ID",
+                parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+                responses: {
+                    200: { description: "Lugar encontrado" },
+                    404: { description: "Não encontrado" },
+                },
+            },
+            patch: {
+                tags: ["Places"],
+                summary: "Atualiza dados de um lugar (owner/admin)",
+                security: [{ OwnerToken: [] }, { AdminToken: [] }],
+                parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+                requestBody: {
+                    required: true,
+                    content: { "application/json": { schema: { $ref: "#/components/schemas/UpdatePlaceBody" } } },
+                },
+                responses: {
+                    200: { description: "Lugar atualizado" },
+                    403: { description: "Sem permissão" },
+                    404: { description: "Não encontrado" },
+                },
+            },
+        },
+        "/places/{id}/status": {
+            patch: {
+                tags: ["Places"],
+                summary: "Atualiza status do lugar (owner/admin)",
+                security: [{ OwnerToken: [] }, { AdminToken: [] }],
+                parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+                requestBody: {
+                    required: true,
+                    content: { "application/json": { schema: { $ref: "#/components/schemas/PlaceStatusBody" } } },
+                },
+                responses: {
+                    200: { description: "Status atualizado" },
+                    403: { description: "Sem permissão" },
+                },
+            },
+        },
+        "/places/{id}/owner": {
+            patch: {
+                tags: ["Places"],
+                summary: "Atribui um owner ao lugar (admin)",
+                security: [{ AdminToken: [] }],
+                parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+                requestBody: {
+                    required: true,
+                    content: { "application/json": { schema: { $ref: "#/components/schemas/AssignOwnerBody" } } },
+                },
+                responses: {
+                    200: { description: "Owner atribuído" },
+                    403: { description: "Sem permissão" },
+                },
+            },
+        },
+
+        // ── Courts (nested) ─────────────────────────────────────────────────
+        "/places/{placeId}/courts": {
+            get: {
+                tags: ["Courts"],
+                summary: "Lista quadras de um lugar",
+                parameters: [
+                    { name: "placeId", in: "path", required: true, schema: { type: "string" } },
+                    { name: "type", in: "query", schema: { type: "string", enum: COURT_TYPES } },
+                    { name: "status", in: "query", schema: { type: "string", enum: ["OPEN", "CLOSED"] } },
+                    { name: "minPrice", in: "query", schema: { type: "number" } },
+                    { name: "maxPrice", in: "query", schema: { type: "number" } },
+                    { name: "availableAt", in: "query", schema: { type: "string", format: "date-time" } },
+                ],
+                responses: { 200: { description: "Lista de quadras" } },
+            },
+            post: {
+                tags: ["Courts"],
+                summary: "Cria uma quadra no lugar (owner/admin)",
+                security: [{ OwnerToken: [] }, { AdminToken: [] }],
+                parameters: [{ name: "placeId", in: "path", required: true, schema: { type: "string" } }],
+                requestBody: {
+                    required: true,
+                    content: { "application/json": { schema: { $ref: "#/components/schemas/CourtBody" } } },
+                },
+                responses: {
+                    201: { description: "Quadra criada" },
+                    403: { description: "Sem permissão" },
+                },
+            },
+        },
+        "/places/{placeId}/courts/{courtId}": {
+            get: {
+                tags: ["Courts"],
+                summary: "Busca uma quadra por ID",
+                parameters: [
+                    { name: "placeId", in: "path", required: true, schema: { type: "string" } },
+                    { name: "courtId", in: "path", required: true, schema: { type: "string" } },
+                ],
+                responses: {
+                    200: { description: "Quadra encontrada" },
+                    404: { description: "Não encontrada" },
+                },
+            },
+            patch: {
+                tags: ["Courts"],
+                summary: "Atualiza uma quadra (owner/admin)",
+                security: [{ OwnerToken: [] }, { AdminToken: [] }],
+                parameters: [
+                    { name: "placeId", in: "path", required: true, schema: { type: "string" } },
+                    { name: "courtId", in: "path", required: true, schema: { type: "string" } },
+                ],
+                requestBody: {
+                    required: true,
+                    content: { "application/json": { schema: { $ref: "#/components/schemas/UpdateCourtBody" } } },
+                },
+                responses: { 200: { description: "Quadra atualizada" }, 403: { description: "Sem permissão" } },
+            },
+            delete: {
+                tags: ["Courts"],
+                summary: "Remove uma quadra (owner/admin)",
+                security: [{ OwnerToken: [] }, { AdminToken: [] }],
+                parameters: [
+                    { name: "placeId", in: "path", required: true, schema: { type: "string" } },
+                    { name: "courtId", in: "path", required: true, schema: { type: "string" } },
+                ],
+                responses: { 200: { description: "Quadra removida" }, 403: { description: "Sem permissão" } },
+            },
+        },
+        "/places/{placeId}/courts/{courtId}/status": {
+            patch: {
+                tags: ["Courts"],
+                summary: "Atualiza status de uma quadra (owner/admin)",
+                security: [{ OwnerToken: [] }, { AdminToken: [] }],
+                parameters: [
+                    { name: "placeId", in: "path", required: true, schema: { type: "string" } },
+                    { name: "courtId", in: "path", required: true, schema: { type: "string" } },
+                ],
+                requestBody: {
+                    required: true,
+                    content: { "application/json": { schema: { $ref: "#/components/schemas/CourtStatusBody" } } },
+                },
+                responses: { 200: { description: "Status atualizado" } },
+            },
+        },
+
+        // ── Courts (global search) ──────────────────────────────────────────
+        "/courts": {
+            get: {
+                tags: ["Courts"],
+                summary: "Busca global de quadras com filtros de localização",
+                parameters: [
+                    { name: "type", in: "query", schema: { type: "string", enum: COURT_TYPES } },
+                    { name: "status", in: "query", schema: { type: "string", enum: ["OPEN", "CLOSED"] } },
+                    { name: "minPrice", in: "query", schema: { type: "number" } },
+                    { name: "maxPrice", in: "query", schema: { type: "number" } },
+                    { name: "availableAt", in: "query", schema: { type: "string", format: "date-time" } },
+                    { name: "city", in: "query", schema: { type: "string" } },
+                    { name: "neighborhood", in: "query", schema: { type: "string" } },
+                ],
+                responses: { 200: { description: "Lista de quadras" } },
+            },
+        },
+
+        // ── Events (nested) ─────────────────────────────────────────────────
+        "/courts/{courtId}/events": {
+            get: {
+                tags: ["Events"],
+                summary: "Lista peladas de uma quadra",
+                parameters: [
+                    { name: "courtId", in: "path", required: true, schema: { type: "string" } },
+                    { name: "status", in: "query", schema: { type: "string", enum: ["WAITING", "FULL", "FINISHED", "CANCELLED"] } },
+                    { name: "from", in: "query", schema: { type: "string", format: "date-time" } },
+                    { name: "to", in: "query", schema: { type: "string", format: "date-time" } },
+                ],
+                responses: { 200: { description: "Lista de peladas" } },
+            },
+            post: {
+                tags: ["Events"],
+                summary: "Cria uma pelada na quadra (autenticado)",
+                security: [{ PlayerToken: [] }, { OwnerToken: [] }, { AdminToken: [] }],
+                parameters: [{ name: "courtId", in: "path", required: true, schema: { type: "string" } }],
+                requestBody: {
+                    required: true,
+                    content: { "application/json": { schema: { $ref: "#/components/schemas/EventBody" } } },
+                },
+                responses: {
+                    201: { description: "Pelada criada" },
+                    401: { description: "Não autenticado" },
+                },
+            },
+        },
+        "/courts/{courtId}/events/{eventId}": {
+            get: {
+                tags: ["Events"],
+                summary: "Busca uma pelada por ID",
+                parameters: [
+                    { name: "courtId", in: "path", required: true, schema: { type: "string" } },
+                    { name: "eventId", in: "path", required: true, schema: { type: "string" } },
+                ],
+                responses: { 200: { description: "Pelada encontrada" }, 404: { description: "Não encontrada" } },
+            },
+            patch: {
+                tags: ["Events"],
+                summary: "Atualiza uma pelada (organizador/admin)",
+                security: [{ PlayerToken: [] }, { OwnerToken: [] }, { AdminToken: [] }],
+                parameters: [
+                    { name: "courtId", in: "path", required: true, schema: { type: "string" } },
+                    { name: "eventId", in: "path", required: true, schema: { type: "string" } },
+                ],
+                requestBody: {
+                    required: true,
+                    content: { "application/json": { schema: { $ref: "#/components/schemas/UpdateEventBody" } } },
+                },
+                responses: { 200: { description: "Pelada atualizada" }, 403: { description: "Sem permissão" } },
+            },
+            delete: {
+                tags: ["Events"],
+                summary: "Remove uma pelada (organizador/admin)",
+                security: [{ PlayerToken: [] }, { OwnerToken: [] }, { AdminToken: [] }],
+                parameters: [
+                    { name: "courtId", in: "path", required: true, schema: { type: "string" } },
+                    { name: "eventId", in: "path", required: true, schema: { type: "string" } },
+                ],
+                responses: { 200: { description: "Pelada removida" } },
+            },
+        },
+        "/courts/{courtId}/events/{eventId}/status": {
+            patch: {
+                tags: ["Events"],
+                summary: "Atualiza status de uma pelada (organizador/admin)",
+                security: [{ PlayerToken: [] }, { OwnerToken: [] }, { AdminToken: [] }],
+                parameters: [
+                    { name: "courtId", in: "path", required: true, schema: { type: "string" } },
+                    { name: "eventId", in: "path", required: true, schema: { type: "string" } },
+                ],
+                requestBody: {
+                    required: true,
+                    content: { "application/json": { schema: { $ref: "#/components/schemas/EventStatusBody" } } },
+                },
+                responses: { 200: { description: "Status atualizado" } },
+            },
+        },
+
+        // ── Events (global) ─────────────────────────────────────────────────
+        "/events": {
+            get: {
+                tags: ["Events"],
+                summary: "Busca global de peladas com filtros",
+                parameters: [
+                    { name: "status", in: "query", schema: { type: "string", enum: ["WAITING", "FULL", "FINISHED", "CANCELLED"] } },
+                    { name: "from", in: "query", schema: { type: "string", format: "date-time" } },
+                    { name: "to", in: "query", schema: { type: "string", format: "date-time" } },
+                    { name: "city", in: "query", schema: { type: "string" } },
+                    { name: "neighborhood", in: "query", schema: { type: "string" } },
+                    { name: "courtType", in: "query", schema: { type: "string", enum: COURT_TYPES } },
+                ],
+                responses: { 200: { description: "Lista de peladas" } },
+            },
+        },
+        "/events/my/created": {
+            get: {
+                tags: ["Events"],
+                summary: "Lista peladas criadas pelo usuário autenticado",
+                security: [{ PlayerToken: [] }, { OwnerToken: [] }, { AdminToken: [] }],
+                parameters: [
+                    { name: "status", in: "query", schema: { type: "string", enum: ["WAITING", "FULL", "FINISHED", "CANCELLED"] } },
+                ],
+                responses: { 200: { description: "Peladas criadas" } },
+            },
+        },
+        "/events/my/participating": {
+            get: {
+                tags: ["Events"],
+                summary: "Lista peladas em que o usuário autenticado participa",
+                security: [{ PlayerToken: [] }, { OwnerToken: [] }, { AdminToken: [] }],
+                parameters: [
+                    { name: "status", in: "query", schema: { type: "string", enum: ["WAITING", "FULL", "FINISHED", "CANCELLED"] } },
+                ],
+                responses: { 200: { description: "Peladas que participa" } },
+            },
+        },
+
+        // ── Participations ──────────────────────────────────────────────────
+        "/courts/{courtId}/events/{eventId}/participations": {
+            get: {
+                tags: ["Participations"],
+                summary: "Lista participantes de uma pelada",
+                parameters: [
+                    { name: "courtId", in: "path", required: true, schema: { type: "string" } },
+                    { name: "eventId", in: "path", required: true, schema: { type: "string" } },
+                ],
+                responses: { 200: { description: "Lista de participantes" } },
+            },
+            post: {
+                tags: ["Participations"],
+                summary: "Entra em uma pelada (autenticado)",
+                security: [{ PlayerToken: [] }, { OwnerToken: [] }, { AdminToken: [] }],
+                parameters: [
+                    { name: "courtId", in: "path", required: true, schema: { type: "string" } },
+                    { name: "eventId", in: "path", required: true, schema: { type: "string" } },
+                ],
+                responses: {
+                    201: { description: "Entrou na pelada" },
+                    409: { description: "Já está inscrito ou pelada cheia" },
+                },
+            },
+            delete: {
+                tags: ["Participations"],
+                summary: "Sai de uma pelada (autenticado)",
+                security: [{ PlayerToken: [] }, { OwnerToken: [] }, { AdminToken: [] }],
+                parameters: [
+                    { name: "courtId", in: "path", required: true, schema: { type: "string" } },
+                    { name: "eventId", in: "path", required: true, schema: { type: "string" } },
+                ],
+                requestBody: {
+                    content: { "application/json": { schema: { $ref: "#/components/schemas/LeaveBody" } } },
+                },
+                responses: { 200: { description: "Saiu da pelada" } },
+            },
+        },
+        "/courts/{courtId}/events/{eventId}/participations/{userId}/attendance": {
+            patch: {
+                tags: ["Participations"],
+                summary: "Confirma presença de um participante (organizador/admin)",
+                security: [{ PlayerToken: [] }, { OwnerToken: [] }, { AdminToken: [] }],
+                parameters: [
+                    { name: "courtId", in: "path", required: true, schema: { type: "string" } },
+                    { name: "eventId", in: "path", required: true, schema: { type: "string" } },
+                    { name: "userId", in: "path", required: true, schema: { type: "string" } },
+                ],
+                requestBody: {
+                    required: true,
+                    content: { "application/json": { schema: { $ref: "#/components/schemas/AttendanceBody" } } },
+                },
+                responses: { 200: { description: "Presença confirmada" } },
+            },
+        },
+
+        // ── Admin ───────────────────────────────────────────────────────────
+        "/admin/users": {
+            get: {
+                tags: ["Admin"],
+                summary: "Lista todos os usuários (admin)",
+                security: [{ AdminToken: [] }],
+                parameters: [
+                    { name: "role", in: "query", schema: { type: "string", enum: ["PLAYER", "OWNER", "ADMIN"] } },
+                ],
+                responses: { 200: { description: "Lista de usuários" } },
+            },
+        },
+        "/admin/users/{id}/role": {
+            patch: {
+                tags: ["Admin"],
+                summary: "Atualiza role de um usuário (admin)",
+                security: [{ AdminToken: [] }],
+                parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+                requestBody: {
+                    required: true,
+                    content: { "application/json": { schema: { $ref: "#/components/schemas/UpdateRoleBody" } } },
+                },
+                responses: { 200: { description: "Role atualizado" } },
+            },
+        },
+    },
+};
+
+export const swaggerSpec = swaggerJsdoc({ definition, apis: [] });

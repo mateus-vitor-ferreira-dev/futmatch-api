@@ -1,9 +1,14 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import request from "supertest";
 import app from "../../app.js";
+import { truncateAll } from "../../tests/setupTests.js";
 import { createUser, tokenFor } from "../../tests/helpers/factories.js";
 
 describe("Auth", () => {
+    beforeAll(async () => {
+        await truncateAll();
+    });
+
     describe("POST /auth/register", () => {
         it("cria conta com dados válidos", async () => {
             const res = await request(app).post("/auth/register").send({

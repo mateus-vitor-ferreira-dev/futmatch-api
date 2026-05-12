@@ -1,7 +1,7 @@
-import { afterAll, beforeAll } from "vitest";
+import { afterAll } from "vitest";
 import prisma from "../config/prisma.js";
 
-beforeAll(async () => {
+export async function truncateAll() {
     await prisma.$executeRaw`
         TRUNCATE TABLE
             "Review",
@@ -14,7 +14,7 @@ beforeAll(async () => {
             "User"
         CASCADE
     `;
-});
+}
 
 afterAll(async () => {
     await prisma.$disconnect();

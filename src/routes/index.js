@@ -48,4 +48,14 @@ router.get("/events", validateQuery(searchEventsQuerySchema), eventController.se
 router.get("/events/my/created", authenticate, validateQuery(myPeladasQuerySchema), participationController.myCreated);
 router.get("/events/my/participating", authenticate, validateQuery(myPeladasQuerySchema), participationController.myParticipations);
 
+// --- SUA ROTA 404 (Sempre no final) ---
+router.use((_req, res) => {
+    res.status(404).json({
+        success: false,
+        message: "Rota não encontrada",
+        error: "404 Not Found"
+    });
+});
+
+// A única exportação do arquivo
 export default router;

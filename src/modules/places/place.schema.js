@@ -26,10 +26,7 @@ export const updatePlaceSchema = yup.object({
 });
 
 export const updateStatusSchema = yup.object({
-    status: yup
-        .string()
-        .oneOf(["OPEN", "CLOSED"], "Status inválido")
-        .required("Status é obrigatório"),
+    status: yup.string().oneOf(["OPEN", "CLOSED"], "Status inválido").required("Status é obrigatório"),
 });
 
 export const assignOwnerSchema = yup.object({

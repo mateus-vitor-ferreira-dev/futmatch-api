@@ -19,7 +19,11 @@ export async function joinPelada(eventId, courtId, userId) {
         throw new AppError(PARTICIPATION_MESSAGES.PELADA_FULL, HTTP.UNPROCESSABLE_ENTITY, "PELADA_FULL");
     }
     if (event.status !== "WAITING") {
-        throw new AppError(PARTICIPATION_MESSAGES.PELADA_NOT_AVAILABLE, HTTP.UNPROCESSABLE_ENTITY, "PELADA_NOT_AVAILABLE");
+        throw new AppError(
+            PARTICIPATION_MESSAGES.PELADA_NOT_AVAILABLE,
+            HTTP.UNPROCESSABLE_ENTITY,
+            "PELADA_NOT_AVAILABLE",
+        );
     }
 
     const existing = await participationRepository.findByPeladaAndUser(eventId, userId);
@@ -41,10 +45,18 @@ export async function leavePelada(eventId, courtId, userId, reason) {
     const event = await getValidEvent(eventId, courtId);
 
     if (event.status === "FINISHED") {
-        throw new AppError(PARTICIPATION_MESSAGES.CANNOT_LEAVE_FINISHED, HTTP.UNPROCESSABLE_ENTITY, "CANNOT_LEAVE_FINISHED");
+        throw new AppError(
+            PARTICIPATION_MESSAGES.CANNOT_LEAVE_FINISHED,
+            HTTP.UNPROCESSABLE_ENTITY,
+            "CANNOT_LEAVE_FINISHED",
+        );
     }
     if (event.status === "CANCELLED") {
-        throw new AppError(PARTICIPATION_MESSAGES.CANNOT_LEAVE_CANCELLED, HTTP.UNPROCESSABLE_ENTITY, "CANNOT_LEAVE_CANCELLED");
+        throw new AppError(
+            PARTICIPATION_MESSAGES.CANNOT_LEAVE_CANCELLED,
+            HTTP.UNPROCESSABLE_ENTITY,
+            "CANNOT_LEAVE_CANCELLED",
+        );
     }
 
     const existing = await participationRepository.findByPeladaAndUser(eventId, userId);
@@ -80,7 +92,11 @@ export async function confirmAttendance(eventId, courtId, targetUserId, attended
     const event = await getValidEvent(eventId, courtId);
 
     if (event.status !== "FINISHED") {
-        throw new AppError(PARTICIPATION_MESSAGES.PELADA_NOT_FINISHED, HTTP.UNPROCESSABLE_ENTITY, "PELADA_NOT_FINISHED");
+        throw new AppError(
+            PARTICIPATION_MESSAGES.PELADA_NOT_FINISHED,
+            HTTP.UNPROCESSABLE_ENTITY,
+            "PELADA_NOT_FINISHED",
+        );
     }
 
     const participation = await participationRepository.findByPeladaAndUser(eventId, targetUserId);

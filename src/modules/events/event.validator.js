@@ -1,7 +1,19 @@
 import * as yup from "yup";
 
 const PELADA_STATUSES = ["WAITING", "FULL", "FINISHED", "CANCELLED"];
-const COURT_TYPES = ["SOCIETY", "CAMPO", "FUTSAL", "AREIA", "VOLEI", "VOLEI_AREIA", "HANDBALL", "PETECA", "BEACH_TENNIS", "BASQUETE", "TENIS"];
+const COURT_TYPES = [
+    "SOCIETY",
+    "CAMPO",
+    "FUTSAL",
+    "AREIA",
+    "VOLEI",
+    "VOLEI_AREIA",
+    "HANDBALL",
+    "PETECA",
+    "BEACH_TENNIS",
+    "BASQUETE",
+    "TENIS",
+];
 
 export const createEventSchema = yup.object({
     date: yup
@@ -14,19 +26,13 @@ export const createEventSchema = yup.object({
         .integer("Número de jogadores deve ser inteiro")
         .min(2, "Mínimo de 2 jogadores")
         .required("Número máximo de jogadores é obrigatório"),
-    totalValue: yup
-        .number()
-        .positive("Valor total deve ser positivo")
-        .required("Valor total é obrigatório"),
+    totalValue: yup.number().positive("Valor total deve ser positivo").required("Valor total é obrigatório"),
     pixKey: yup.string().trim().required("Chave Pix é obrigatória"),
 });
 
 export const updateEventSchema = yup.object({
     date: yup.date().min(new Date(), "A data deve ser no futuro").typeError("Data inválida"),
-    maxPlayers: yup
-        .number()
-        .integer("Número de jogadores deve ser inteiro")
-        .min(2, "Mínimo de 2 jogadores"),
+    maxPlayers: yup.number().integer("Número de jogadores deve ser inteiro").min(2, "Mínimo de 2 jogadores"),
     totalValue: yup.number().positive("Valor total deve ser positivo"),
     pixKey: yup.string().trim(),
 });

@@ -20,9 +20,7 @@ describe("Admin", () => {
 
     describe("GET /admin/users", () => {
         it("admin lista todos os usuários", async () => {
-            const res = await request(app)
-                .get("/admin/users")
-                .set("Authorization", adminToken);
+            const res = await request(app).get("/admin/users").set("Authorization", adminToken);
 
             expect(res.status).toBe(200);
             expect(Array.isArray(res.body.data)).toBe(true);
@@ -30,18 +28,14 @@ describe("Admin", () => {
         });
 
         it("filtra usuários por role", async () => {
-            const res = await request(app)
-                .get("/admin/users?role=PLAYER")
-                .set("Authorization", adminToken);
+            const res = await request(app).get("/admin/users?role=PLAYER").set("Authorization", adminToken);
 
             expect(res.status).toBe(200);
             expect(res.body.data.every((u) => u.role === "PLAYER")).toBe(true);
         });
 
         it("player não acessa rota de admin (403)", async () => {
-            const res = await request(app)
-                .get("/admin/users")
-                .set("Authorization", playerToken);
+            const res = await request(app).get("/admin/users").set("Authorization", playerToken);
 
             expect(res.status).toBe(403);
         });

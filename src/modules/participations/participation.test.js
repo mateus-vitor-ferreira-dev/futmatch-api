@@ -3,13 +3,7 @@ import request from "supertest";
 import app from "../../app.js";
 import prisma from "../../config/prisma.js";
 import { truncateAll } from "../../tests/setupTests.js";
-import {
-    createUser,
-    createPlace,
-    createCourt,
-    createEvent,
-    tokenFor,
-} from "../../tests/helpers/factories.js";
+import { createUser, createPlace, createCourt, createEvent, tokenFor } from "../../tests/helpers/factories.js";
 
 describe("Participations", () => {
     let organizer, player1, player2;
@@ -32,8 +26,7 @@ describe("Participations", () => {
         court = await createCourt({ placeId: place.id });
     });
 
-    const url = (courtId, eventId) =>
-        `/courts/${courtId}/events/${eventId}/participations`;
+    const url = (courtId, eventId) => `/courts/${courtId}/events/${eventId}/participations`;
 
     describe("GET participações", () => {
         it("lista participantes sem autenticação", async () => {
@@ -48,9 +41,7 @@ describe("Participations", () => {
         it("player entra em pelada WAITING", async () => {
             const event = await createEvent({ courtId: court.id, organizerId: organizer.id });
 
-            const res = await request(app)
-                .post(url(court.id, event.id))
-                .set("Authorization", player1Token);
+            const res = await request(app).post(url(court.id, event.id)).set("Authorization", player1Token);
 
             expect(res.status).toBe(201);
         });
@@ -66,9 +57,7 @@ describe("Participations", () => {
             const event = await createEvent({ courtId: court.id, organizerId: organizer.id });
             await request(app).post(url(court.id, event.id)).set("Authorization", player1Token);
 
-            const res = await request(app)
-                .post(url(court.id, event.id))
-                .set("Authorization", player1Token);
+            const res = await request(app).post(url(court.id, event.id)).set("Authorization", player1Token);
 
             expect(res.status).toBe(409);
         });
@@ -94,9 +83,7 @@ describe("Participations", () => {
                 status: "CANCELLED",
             });
 
-            const res = await request(app)
-                .post(url(court.id, event.id))
-                .set("Authorization", player1Token);
+            const res = await request(app).post(url(court.id, event.id)).set("Authorization", player1Token);
 
             expect(res.status).toBe(422);
         });
@@ -114,9 +101,7 @@ describe("Participations", () => {
             const eventFull = await prisma.pelada.findUnique({ where: { id: event.id } });
             expect(eventFull.status).toBe("FULL");
 
-            const res = await request(app)
-                .delete(url(court.id, event.id))
-                .set("Authorization", player1Token);
+            const res = await request(app).delete(url(court.id, event.id)).set("Authorization", player1Token);
 
             expect(res.status).toBe(200);
 

@@ -80,9 +80,7 @@ describe("Events (Peladas)", () => {
         });
 
         it("retorna 401 sem autenticação", async () => {
-            const res = await request(app)
-                .post(`/courts/${court.id}/events`)
-                .send(eventPayload());
+            const res = await request(app).post(`/courts/${court.id}/events`).send(eventPayload());
 
             expect(res.status).toBe(401);
         });
@@ -224,9 +222,7 @@ describe("Events (Peladas)", () => {
         it("retorna peladas criadas pelo usuário autenticado", async () => {
             await createEvent({ courtId: court.id, organizerId: organizer.id });
 
-            const res = await request(app)
-                .get("/events/my/created")
-                .set("Authorization", organizerToken);
+            const res = await request(app).get("/events/my/created").set("Authorization", organizerToken);
 
             expect(res.status).toBe(200);
             expect(Array.isArray(res.body.data)).toBe(true);
@@ -240,9 +236,7 @@ describe("Events (Peladas)", () => {
 
     describe("GET /events/my/participating", () => {
         it("retorna peladas que o usuário participa", async () => {
-            const res = await request(app)
-                .get("/events/my/participating")
-                .set("Authorization", playerToken);
+            const res = await request(app).get("/events/my/participating").set("Authorization", playerToken);
 
             expect(res.status).toBe(200);
             expect(Array.isArray(res.body.data)).toBe(true);

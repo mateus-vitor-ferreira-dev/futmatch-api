@@ -26,7 +26,7 @@ export function createCourt(placeId, data) {
 export async function updateCourt(court, data, actorId) {
     const allowed = ["name", "type", "pricePerHour"];
     const updateData = Object.fromEntries(
-        Object.entries(data).filter(([key]) => allowed.includes(key) && data[key] !== undefined)
+        Object.entries(data).filter(([key]) => allowed.includes(key) && data[key] !== undefined),
     );
     const [updated, actor] = await Promise.all([
         courtRepository.update(court.id, updateData),

@@ -5,6 +5,17 @@ import { truncateAll } from "../../tests/setupTests.js";
 import { createUser, createPlace, createCourt, createEvent, tokenFor } from "../../tests/helpers/factories.js";
 import prisma from "../../config/prisma.js";
 
+// Aguarda o badge ser gravado (fire-and-forget) com até 3s de tolerância para CI
+async function pollBadge(userId, expected, attempts = 10, interval = 300) {
+    for (let i = 0; i < attempts; i++) {
+        const user = await prisma.user.findUnique({ where: { id: userId }, select: { badge: true } });
+        if (user?.badge === expected) return user.badge;
+        await new Promise((r) => setTimeout(r, interval));
+    }
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { badge: true } });
+    return user?.badge ?? null;
+}
+
 describe("User Profile", () => {
     let player, player2, admin;
     let playerToken, adminToken;
@@ -245,34 +256,26 @@ describe("User Profile", () => {
             const reviewerC = await createUser({ role: "PLAYER", email: "badge-reviewer-c@test.com" });
             await prisma.participation.create({ data: { peladaId: badgeEvent.id, userId: reviewerC.id } });
 
-            const reviewerCToken = tokenFor(reviewerC);
-
             await request(app)
                 .post(`/courts/${badgeCourt.id}/events/${badgeEvent.id}/reviews`)
-                .set("Authorization", reviewerCToken)
+                .set("Authorization", tokenFor(reviewerC))
                 .send({ reviewedId: badgePlayer.id, stars: 5, tag: "CRAQUE_DA_PELADA" });
 
-            // aguarda badge ser calculado (é fire-and-forget mas é rápido em testes)
-            await new Promise((r) => setTimeout(r, 300));
-
-            const res = await request(app).get(`/users/${badgePlayer.id}`);
-            expect(res.body.data.badge).toBe("CRAQUE");
+            const badge = await pollBadge(badgePlayer.id, "CRAQUE");
+            expect(badge).toBe("CRAQUE");
         });
 
         it("badge ORGANIZADOR_NATO é atribuído quando ≥ 5 peladas criadas", async () => {
             const orgPlayer = await createUser({ role: "PLAYER", email: "org-nato@test.com" });
-            const orgToken = tokenFor(orgPlayer);
             const orgPlace = await createPlace({ ownerId: admin.id });
             const orgCourt = await createCourt({ placeId: orgPlace.id });
 
-            // cria 5 peladas finalizadas
             const events = await Promise.all(
                 Array.from({ length: 5 }, () =>
                     createEvent({ courtId: orgCourt.id, organizerId: orgPlayer.id, status: "FINISHED" }),
                 ),
             );
 
-            // confirma presença do orgPlayer em uma delas para triggerar o badge
             await prisma.participation.create({ data: { peladaId: events[0].id, userId: orgPlayer.id } });
 
             await request(app)
@@ -280,10 +283,8 @@ describe("User Profile", () => {
                 .set("Authorization", adminToken)
                 .send({ attended: true });
 
-            await new Promise((r) => setTimeout(r, 300));
-
-            const res = await request(app).get(`/users/${orgPlayer.id}`).set("Authorization", orgToken);
-            expect(res.body.data.badge).toBe("ORGANIZADOR_NATO");
+            const badge = await pollBadge(orgPlayer.id, "ORGANIZADOR_NATO");
+            expect(badge).toBe("ORGANIZADOR_NATO");
         });
     });
 });

@@ -1,6 +1,7 @@
 import { AppError } from "../../utils/AppError.js";
 import HTTP from "../../constants/httpStatus.js";
 import { PARTICIPATION_MESSAGES } from "../../constants/messages/participation.messages.js";
+import { recalculateBadge } from "../../utils/badge.js";
 import * as participationRepository from "./participation.repository.js";
 import * as eventRepository from "../events/event.repository.js";
 
@@ -104,7 +105,9 @@ export async function confirmAttendance(eventId, courtId, targetUserId, attended
         throw new AppError(PARTICIPATION_MESSAGES.NOT_PARTICIPATING, HTTP.NOT_FOUND, "NOT_PARTICIPATING");
     }
 
-    return participationRepository.updateAttendance(eventId, targetUserId, attended);
+    const updated = await participationRepository.updateAttendance(eventId, targetUserId, attended);
+    recalculateBadge(targetUserId).catch(() => {});
+    return updated;
 }
 
 export function myCreatedPeladas(userId, filters) {

@@ -6,6 +6,7 @@ import placeRequestRoutes from "../modules/place-requests/place-request.routes.j
 import courtRoutes from "../modules/courts/court.routes.js";
 import eventRoutes from "../modules/events/event.routes.js";
 import participationRoutes from "../modules/participations/participation.routes.js";
+import tournamentRoutes from "../modules/tournaments/tournament.routes.js";
 import { validateQuery } from "../middlewares/validate.middleware.js";
 import { authenticate } from "../middlewares/auth.middleware.js";
 import { searchCourtsQuerySchema } from "../modules/courts/court.schema.js";
@@ -37,6 +38,7 @@ router.use("/courts/:courtId/events", eventRoutes);
 router.use("/courts/:courtId/events/:eventId/participations", participationRoutes);
 router.use("/admin", adminRoutes);
 router.use("/place-requests", placeRequestRoutes);
+router.use("/tournaments", tournamentRoutes);
 
 // Busca global de quadras com filtros de localização
 router.get("/courts", validateQuery(searchCourtsQuerySchema), courtController.search);

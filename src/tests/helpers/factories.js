@@ -69,3 +69,29 @@ export async function createEvent({ courtId, organizerId, date, ...rest } = {}) 
         },
     });
 }
+
+export async function createTournament({ placeId, createdById, ...rest } = {}) {
+    return prisma.tournament.create({
+        data: {
+            name: "Copa FutMatch",
+            sportType: "AREIA",
+            format: "LEAGUE",
+            placeId,
+            createdById,
+            ...rest,
+        },
+    });
+}
+
+export async function createTournamentDivision({ tournamentId, ...rest } = {}) {
+    return prisma.tournamentDivision.create({
+        data: {
+            name: "Masculino Iniciante",
+            level: "BEGINNER",
+            minPlayersPerTeam: 2,
+            maxPlayersPerTeam: 2,
+            tournamentId,
+            ...rest,
+        },
+    });
+}

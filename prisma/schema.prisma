@@ -70,6 +70,48 @@ enum PlaceRequestStatus {
   REJECTED
 }
 
+enum TournamentStatus {
+  DRAFT               // Criado, não publicado
+  OPEN                // Publicado, inscrições abertas
+  REGISTRATION_CLOSED // Inscrições encerradas, campeonato não iniciado
+  IN_PROGRESS         // Em andamento
+  FINISHED            // Finalizado
+  CANCELLED           // Cancelado
+}
+
+enum TournamentFormat {
+  LEAGUE                // Pontos corridos
+  KNOCKOUT              // Mata-mata
+  GROUPS_AND_KNOCKOUT   // Grupos + eliminatória
+  DOUBLE_ELIMINATION    // Eliminatória dupla
+  SWISS                 // Sistema suíço
+}
+
+enum TournamentParticipantType {
+  TEAM
+  INDIVIDUAL
+}
+
+enum TournamentRegistrationMode {
+  OPEN
+  APPROVAL_REQUIRED
+}
+
+enum OrganizerType {
+  PLACE
+  USER
+  COMPANY
+  OTHER
+}
+
+enum CompetitionLevel {
+  BEGINNER
+  INTERMEDIATE
+  AMATEUR
+  ADVANCED
+  PROFESSIONAL
+}
+
 // ---------------------------------------------------------------------------
 // Models
 // ---------------------------------------------------------------------------
@@ -86,13 +128,15 @@ model User {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 
-  accounts        Account[]
-  placesOwned     Place[]
-  placeRequests   PlaceRequest[]
-  peladasCreated  Pelada[]        @relation("OrganizerPeladas")
-  participations  Participation[]
-  reviewsGiven    Review[]        @relation("ReviewsGiven")
-  reviewsReceived Review[]        @relation("ReviewsReceived")
+  accounts              Account[]
+  placesOwned           Place[]
+  placeRequests         PlaceRequest[]
+  peladasCreated        Pelada[]        @relation("OrganizerPeladas")
+  participations        Participation[]
+  reviewsGiven          Review[]        @relation("ReviewsGiven")
+  reviewsReceived       Review[]        @relation("ReviewsReceived")
+  tournamentsCreated    Tournament[]    @relation("TournamentsCreated")
+  tournamentsOrganized  Tournament[]    @relation("TournamentsOrganized")
 }
 
 // Armazena contas OAuth (Google) e permite login híbrido
@@ -134,8 +178,9 @@ model Place {
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 
-  owner  User?   @relation(fields: [ownerId], references: [id])
-  courts Court[]
+  owner       User?        @relation(fields: [ownerId], references: [id])
+  courts      Court[]
+  tournaments Tournament[]
 }
 
 // Espaço de jogo dentro de um estabelecimento, gerenciado pelo OWNER
@@ -222,4 +267,55 @@ model Review {
   reviewed User   @relation("ReviewsReceived", fields: [reviewedId], references: [id])
 
   @@unique([peladaId, reviewerId, reviewedId])
+}
+
+// Campeonato realizado em um Place
+model Tournament {
+  id                    String                     @id @default(cuid())
+  name                  String
+  description           String?
+  placeId               String
+  createdById           String
+  organizerType         OrganizerType              @default(PLACE)
+  organizerName         String?
+  organizerUserId       String?
+  sportType             CourtType
+  format                TournamentFormat
+  participantType       TournamentParticipantType  @default(TEAM)
+  status                TournamentStatus           @default(DRAFT)
+  registrationMode      TournamentRegistrationMode @default(OPEN)
+  registrationStartDate DateTime?
+  registrationEndDate   DateTime?
+  startDate             DateTime?
+  endDate               DateTime?
+  maxParticipants       Int?
+  registrationFee       Decimal?                   @db.Decimal(10, 2)
+  paymentInstructions   String?
+  pixKey                String?
+  rules                 String?
+  createdAt             DateTime                   @default(now())
+  updatedAt             DateTime                   @updatedAt
+
+  place         Place                @relation(fields: [placeId], references: [id])
+  createdBy     User                 @relation("TournamentsCreated", fields: [createdById], references: [id])
+  organizerUser User?                @relation("TournamentsOrganized", fields: [organizerUserId], references: [id])
+  divisions     TournamentDivision[]
+}
+
+// Categoria/divisão dentro de um campeonato (ex: Masculino Iniciante, Misto Intermediário)
+model TournamentDivision {
+  id                String           @id @default(cuid())
+  tournamentId      String
+  name              String
+  description       String?
+  genderRestriction String?
+  ageRestriction    String?
+  level             CompetitionLevel @default(AMATEUR)
+  minPlayersPerTeam Int              @default(2)
+  maxPlayersPerTeam Int              @default(2)
+  maxParticipants   Int?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
 }

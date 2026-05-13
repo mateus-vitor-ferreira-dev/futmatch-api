@@ -14,6 +14,10 @@ const COURT_TYPES = [
     "TENIS",
 ];
 
+const TOURNAMENT_FORMATS = ["LEAGUE", "KNOCKOUT", "GROUPS_AND_KNOCKOUT", "DOUBLE_ELIMINATION", "SWISS"];
+const TOURNAMENT_STATUSES = ["DRAFT", "OPEN", "REGISTRATION_CLOSED", "IN_PROGRESS", "FINISHED", "CANCELLED"];
+const COMPETITION_LEVELS = ["BEGINNER", "INTERMEDIATE", "AMATEUR", "ADVANCED", "PROFESSIONAL"];
+
 const definition = {
     openapi: "3.0.0",
     info: {
@@ -179,6 +183,133 @@ const definition = {
                 required: ["attended"],
                 properties: {
                     attended: { type: "boolean", example: true },
+                },
+            },
+            // ── Tournament ──────────────────────────────────────────────────
+            TournamentBody: {
+                type: "object",
+                required: ["name", "placeId", "sportType", "format"],
+                properties: {
+                    name: { type: "string", example: "Copa FutMatch 2026" },
+                    description: { type: "string", nullable: true, example: "Campeonato anual de futevôlei" },
+                    placeId: { type: "string", example: "cuid-do-place" },
+                    organizerType: {
+                        type: "string",
+                        enum: ["PLACE", "USER", "COMPANY", "OTHER"],
+                        default: "PLACE",
+                    },
+                    organizerName: { type: "string", nullable: true, example: "Liga Esportiva Sul Mineira" },
+                    organizerUserId: { type: "string", nullable: true, example: "cuid-do-usuario" },
+                    sportType: { type: "string", enum: COURT_TYPES, example: "AREIA" },
+                    format: { type: "string", enum: TOURNAMENT_FORMATS, example: "GROUPS_AND_KNOCKOUT" },
+                    participantType: { type: "string", enum: ["TEAM", "INDIVIDUAL"], default: "TEAM" },
+                    registrationMode: {
+                        type: "string",
+                        enum: ["OPEN", "APPROVAL_REQUIRED"],
+                        default: "OPEN",
+                    },
+                    registrationStartDate: {
+                        type: "string",
+                        format: "date-time",
+                        nullable: true,
+                        example: "2026-06-01T08:00:00.000Z",
+                    },
+                    registrationEndDate: {
+                        type: "string",
+                        format: "date-time",
+                        nullable: true,
+                        example: "2026-06-20T23:59:00.000Z",
+                    },
+                    startDate: {
+                        type: "string",
+                        format: "date-time",
+                        nullable: true,
+                        example: "2026-06-28T08:00:00.000Z",
+                    },
+                    endDate: {
+                        type: "string",
+                        format: "date-time",
+                        nullable: true,
+                        example: "2026-06-29T18:00:00.000Z",
+                    },
+                    maxParticipants: { type: "integer", minimum: 2, nullable: true, example: 16 },
+                    registrationFee: { type: "number", minimum: 0, nullable: true, example: 150.0 },
+                    paymentInstructions: { type: "string", nullable: true, example: "Pagamento via PIX" },
+                    pixKey: { type: "string", nullable: true, example: "organizador@email.com" },
+                    rules: { type: "string", nullable: true, example: "Segue regulamento CBFS." },
+                },
+            },
+            UpdateTournamentBody: {
+                type: "object",
+                properties: {
+                    name: { type: "string" },
+                    description: { type: "string", nullable: true },
+                    organizerType: { type: "string", enum: ["PLACE", "USER", "COMPANY", "OTHER"] },
+                    organizerName: { type: "string", nullable: true },
+                    organizerUserId: { type: "string", nullable: true },
+                    sportType: { type: "string", enum: COURT_TYPES },
+                    format: { type: "string", enum: TOURNAMENT_FORMATS },
+                    participantType: { type: "string", enum: ["TEAM", "INDIVIDUAL"] },
+                    registrationMode: { type: "string", enum: ["OPEN", "APPROVAL_REQUIRED"] },
+                    registrationStartDate: { type: "string", format: "date-time", nullable: true },
+                    registrationEndDate: { type: "string", format: "date-time", nullable: true },
+                    startDate: { type: "string", format: "date-time", nullable: true },
+                    endDate: { type: "string", format: "date-time", nullable: true },
+                    maxParticipants: { type: "integer", minimum: 2, nullable: true },
+                    registrationFee: { type: "number", minimum: 0, nullable: true },
+                    paymentInstructions: { type: "string", nullable: true },
+                    pixKey: { type: "string", nullable: true },
+                    rules: { type: "string", nullable: true },
+                },
+            },
+            TournamentStatusBody: {
+                type: "object",
+                required: ["status"],
+                properties: {
+                    status: {
+                        type: "string",
+                        enum: TOURNAMENT_STATUSES,
+                        example: "OPEN",
+                        description:
+                            "Fluxo válido: DRAFT→OPEN→REGISTRATION_CLOSED→IN_PROGRESS→FINISHED. CANCELLED aceito de qualquer estado ativo.",
+                    },
+                },
+            },
+            DivisionBody: {
+                type: "object",
+                required: ["name"],
+                properties: {
+                    name: { type: "string", example: "Masculino Iniciante" },
+                    description: { type: "string", nullable: true },
+                    genderRestriction: {
+                        type: "string",
+                        nullable: true,
+                        example: "masculino",
+                        description: "Ex: masculino, feminino, misto, livre",
+                    },
+                    ageRestriction: {
+                        type: "string",
+                        nullable: true,
+                        example: "sub-18",
+                        description: "Ex: sub-18, adulto, master",
+                    },
+                    level: { type: "string", enum: COMPETITION_LEVELS, default: "AMATEUR" },
+                    minPlayersPerTeam: { type: "integer", minimum: 1, default: 2, example: 2 },
+                    maxPlayersPerTeam: { type: "integer", minimum: 1, default: 2, example: 2 },
+                    maxParticipants: { type: "integer", minimum: 2, nullable: true, example: 8 },
+                },
+            },
+            UpdateDivisionBody: {
+                type: "object",
+                properties: {
+                    name: { type: "string" },
+                    description: { type: "string", nullable: true },
+                    genderRestriction: { type: "string", nullable: true },
+                    ageRestriction: { type: "string", nullable: true },
+                    level: { type: "string", enum: COMPETITION_LEVELS },
+                    minPlayersPerTeam: { type: "integer", minimum: 1 },
+                    maxPlayersPerTeam: { type: "integer", minimum: 1 },
+                    maxParticipants: { type: "integer", minimum: 2, nullable: true },
                 },
             },
             // ── Admin ───────────────────────────────────────────────────────
@@ -630,6 +761,187 @@ const definition = {
                     content: { "application/json": { schema: { $ref: "#/components/schemas/AttendanceBody" } } },
                 },
                 responses: { 200: { description: "Presença confirmada" } },
+            },
+        },
+
+        // ── Tournaments ─────────────────────────────────────────────────────
+        "/tournaments": {
+            get: {
+                tags: ["Tournaments"],
+                summary: "Lista campeonatos (público)",
+                parameters: [
+                    { name: "placeId", in: "query", schema: { type: "string" } },
+                    { name: "sportType", in: "query", schema: { type: "string", enum: COURT_TYPES } },
+                    { name: "status", in: "query", schema: { type: "string", enum: TOURNAMENT_STATUSES } },
+                    { name: "format", in: "query", schema: { type: "string", enum: TOURNAMENT_FORMATS } },
+                ],
+                responses: { 200: { description: "Lista de campeonatos" } },
+            },
+            post: {
+                tags: ["Tournaments"],
+                summary: "Cria um campeonato (OWNER ou ADMIN)",
+                security: [{ OwnerToken: [] }, { AdminToken: [] }],
+                requestBody: {
+                    required: true,
+                    content: { "application/json": { schema: { $ref: "#/components/schemas/TournamentBody" } } },
+                },
+                responses: {
+                    201: { description: "Campeonato criado" },
+                    400: { description: "Dados inválidos" },
+                    401: { description: "Não autenticado" },
+                    403: { description: "Sem permissão (apenas OWNER ou ADMIN)" },
+                    404: { description: "Place não encontrado" },
+                },
+            },
+        },
+        "/tournaments/{tournamentId}": {
+            get: {
+                tags: ["Tournaments"],
+                summary: "Detalhe de um campeonato com divisões (público)",
+                parameters: [
+                    { name: "tournamentId", in: "path", required: true, schema: { type: "string" } },
+                ],
+                responses: {
+                    200: { description: "Campeonato encontrado" },
+                    404: { description: "Não encontrado" },
+                },
+            },
+            patch: {
+                tags: ["Tournaments"],
+                summary: "Edita dados do campeonato (OWNER do place, ADMIN ou organizador)",
+                security: [{ OwnerToken: [] }, { AdminToken: [] }],
+                parameters: [
+                    { name: "tournamentId", in: "path", required: true, schema: { type: "string" } },
+                ],
+                requestBody: {
+                    required: true,
+                    content: {
+                        "application/json": { schema: { $ref: "#/components/schemas/UpdateTournamentBody" } },
+                    },
+                },
+                responses: {
+                    200: { description: "Campeonato atualizado" },
+                    403: { description: "Sem permissão" },
+                    404: { description: "Não encontrado" },
+                    409: { description: "Format bloqueado (status IN_PROGRESS)" },
+                },
+            },
+            delete: {
+                tags: ["Tournaments"],
+                summary: "Exclui campeonato em DRAFT (OWNER do place, ADMIN ou organizador)",
+                security: [{ OwnerToken: [] }, { AdminToken: [] }],
+                parameters: [
+                    { name: "tournamentId", in: "path", required: true, schema: { type: "string" } },
+                ],
+                responses: {
+                    200: { description: "Campeonato excluído" },
+                    403: { description: "Sem permissão" },
+                    404: { description: "Não encontrado" },
+                    409: { description: "Apenas DRAFT pode ser excluído" },
+                },
+            },
+        },
+        "/tournaments/{tournamentId}/status": {
+            patch: {
+                tags: ["Tournaments"],
+                summary: "Muda status do campeonato (OWNER do place, ADMIN ou organizador)",
+                description:
+                    "Fluxo válido: **DRAFT → OPEN → REGISTRATION_CLOSED → IN_PROGRESS → FINISHED**. CANCELLED é aceito de qualquer estado ativo.",
+                security: [{ OwnerToken: [] }, { AdminToken: [] }],
+                parameters: [
+                    { name: "tournamentId", in: "path", required: true, schema: { type: "string" } },
+                ],
+                requestBody: {
+                    required: true,
+                    content: {
+                        "application/json": { schema: { $ref: "#/components/schemas/TournamentStatusBody" } },
+                    },
+                },
+                responses: {
+                    200: { description: "Status atualizado" },
+                    400: { description: "Status inválido no body" },
+                    403: { description: "Sem permissão" },
+                    409: { description: "Transição de status inválida" },
+                },
+            },
+        },
+
+        // ── Tournament Divisions ────────────────────────────────────────────
+        "/tournaments/{tournamentId}/divisions": {
+            get: {
+                tags: ["Tournament Divisions"],
+                summary: "Lista divisões de um campeonato (público)",
+                parameters: [
+                    { name: "tournamentId", in: "path", required: true, schema: { type: "string" } },
+                ],
+                responses: { 200: { description: "Lista de divisões" } },
+            },
+            post: {
+                tags: ["Tournament Divisions"],
+                summary: "Cria divisão no campeonato (OWNER do place, ADMIN ou organizador)",
+                security: [{ OwnerToken: [] }, { AdminToken: [] }],
+                parameters: [
+                    { name: "tournamentId", in: "path", required: true, schema: { type: "string" } },
+                ],
+                requestBody: {
+                    required: true,
+                    content: { "application/json": { schema: { $ref: "#/components/schemas/DivisionBody" } } },
+                },
+                responses: {
+                    201: { description: "Divisão criada" },
+                    400: { description: "Dados inválidos" },
+                    401: { description: "Não autenticado" },
+                    403: { description: "Sem permissão" },
+                    404: { description: "Campeonato não encontrado" },
+                },
+            },
+        },
+        "/tournaments/{tournamentId}/divisions/{divisionId}": {
+            get: {
+                tags: ["Tournament Divisions"],
+                summary: "Detalhe de uma divisão (público)",
+                parameters: [
+                    { name: "tournamentId", in: "path", required: true, schema: { type: "string" } },
+                    { name: "divisionId", in: "path", required: true, schema: { type: "string" } },
+                ],
+                responses: {
+                    200: { description: "Divisão encontrada" },
+                    404: { description: "Não encontrada" },
+                },
+            },
+            patch: {
+                tags: ["Tournament Divisions"],
+                summary: "Edita uma divisão (OWNER do place, ADMIN ou organizador)",
+                security: [{ OwnerToken: [] }, { AdminToken: [] }],
+                parameters: [
+                    { name: "tournamentId", in: "path", required: true, schema: { type: "string" } },
+                    { name: "divisionId", in: "path", required: true, schema: { type: "string" } },
+                ],
+                requestBody: {
+                    required: true,
+                    content: {
+                        "application/json": { schema: { $ref: "#/components/schemas/UpdateDivisionBody" } },
+                    },
+                },
+                responses: {
+                    200: { description: "Divisão atualizada" },
+                    403: { description: "Sem permissão" },
+                    404: { description: "Não encontrada" },
+                },
+            },
+            delete: {
+                tags: ["Tournament Divisions"],
+                summary: "Remove uma divisão (OWNER do place, ADMIN ou organizador)",
+                security: [{ OwnerToken: [] }, { AdminToken: [] }],
+                parameters: [
+                    { name: "tournamentId", in: "path", required: true, schema: { type: "string" } },
+                    { name: "divisionId", in: "path", required: true, schema: { type: "string" } },
+                ],
+                responses: {
+                    200: { description: "Divisão removida" },
+                    403: { description: "Sem permissão" },
+                    404: { description: "Não encontrada" },
+                },
             },
         },
 

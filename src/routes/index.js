@@ -8,6 +8,7 @@ import eventRoutes from "../modules/events/event.routes.js";
 import participationRoutes from "../modules/participations/participation.routes.js";
 import tournamentRoutes from "../modules/tournaments/tournament.routes.js";
 import { eventRouter as reviewEventRoutes, userRouter as reviewUserRoutes } from "../modules/reviews/review.routes.js";
+import userRoutes from "../modules/users/user.routes.js";
 import { validateQuery } from "../middlewares/validate.middleware.js";
 import { authenticate } from "../middlewares/auth.middleware.js";
 import { searchCourtsQuerySchema } from "../modules/courts/court.schema.js";
@@ -41,6 +42,8 @@ router.use("/admin", adminRoutes);
 router.use("/place-requests", placeRequestRoutes);
 router.use("/tournaments", tournamentRoutes);
 router.use("/courts/:courtId/events/:eventId", reviewEventRoutes);
+// /me e /:userId ficam no userRoutes; /:userId/reviews fica no reviewUserRoutes
+router.use("/users", userRoutes);
 router.use("/users", reviewUserRoutes);
 
 // Busca global de quadras com filtros de localização

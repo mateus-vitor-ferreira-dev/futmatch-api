@@ -1,6 +1,7 @@
 import { AppError } from "../../utils/AppError.js";
 import HTTP from "../../constants/httpStatus.js";
 import { REVIEW_MESSAGES } from "../../constants/messages/review.messages.js";
+import { recalculateBadge } from "../../utils/badge.js";
 import * as repo from "./review.repository.js";
 
 export async function createReview(peladaId, reviewerId, data) {
@@ -37,7 +38,10 @@ export async function createReview(peladaId, reviewerId, data) {
         throw new AppError(REVIEW_MESSAGES.ALREADY_REVIEWED, HTTP.CONFLICT, "ALREADY_REVIEWED");
     }
 
-    return repo.create({ peladaId, reviewerId, reviewedId, stars, tag, comment: comment ?? null });
+    const review = await repo.create({ peladaId, reviewerId, reviewedId, stars, tag, comment: comment ?? null });
+    // dispara em background — não bloqueia a resposta
+    recalculateBadge(reviewedId).catch(() => {});
+    return review;
 }
 
 export async function getProgress(peladaId, reviewerId) {

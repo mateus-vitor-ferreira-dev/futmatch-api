@@ -185,6 +185,18 @@ const definition = {
                     attended: { type: "boolean", example: true },
                 },
             },
+            // ── Profile ────────────────────────────────────────────────────
+            UpdateProfileBody: {
+                type: "object",
+                properties: {
+                    name: { type: "string", minLength: 2, example: "João Silva" },
+                    avatarUrl: { type: "string", format: "uri", nullable: true, example: "https://example.com/foto.jpg" },
+                    pixKey: { type: "string", nullable: true, example: "joao@pix.com" },
+                    currentPassword: { type: "string", example: "minhasenha123" },
+                    newPassword: { type: "string", minLength: 6, example: "novasenha456" },
+                    confirmNewPassword: { type: "string", example: "novasenha456" },
+                },
+            },
             // ── Review ─────────────────────────────────────────────────────
             ReviewBody: {
                 type: "object",
@@ -728,6 +740,49 @@ const definition = {
                     401: { description: "Não autenticado" },
                     403: { description: "Usuário não participou da pelada" },
                     404: { description: "Pelada não encontrada" },
+                },
+            },
+        },
+
+        // ── User Profile ────────────────────────────────────────────────────
+        "/users/me": {
+            get: {
+                tags: ["Profile"],
+                summary: "Retorna perfil completo do usuário autenticado (com email e pixKey)",
+                security: [{ PlayerToken: [] }, { OwnerToken: [] }, { AdminToken: [] }],
+                responses: {
+                    200: { description: "Perfil retornado" },
+                    401: { description: "Não autenticado" },
+                },
+            },
+            patch: {
+                tags: ["Profile"],
+                summary: "Atualiza perfil do usuário autenticado",
+                description:
+                    "Campos opcionais: `name`, `avatarUrl`, `pixKey`. Para trocar senha: envie `currentPassword`, `newPassword` e `confirmNewPassword`.",
+                security: [{ PlayerToken: [] }, { OwnerToken: [] }, { AdminToken: [] }],
+                requestBody: {
+                    required: true,
+                    content: { "application/json": { schema: { $ref: "#/components/schemas/UpdateProfileBody" } } },
+                },
+                responses: {
+                    200: { description: "Perfil atualizado" },
+                    400: { description: "Conta Google sem senha" },
+                    401: { description: "Senha atual incorreta ou não autenticado" },
+                    422: { description: "Dados inválidos" },
+                },
+            },
+        },
+        "/users/{userId}": {
+            get: {
+                tags: ["Profile"],
+                summary: "Perfil público de um usuário com estatísticas (público)",
+                description:
+                    "Retorna nome, avatar, badge, role e `stats` com média de estrelas, total de peladas e tags mais recebidas.",
+                parameters: [{ name: "userId", in: "path", required: true, schema: { type: "string" } }],
+                responses: {
+                    200: { description: "Perfil público retornado" },
+                    404: { description: "Usuário não encontrado" },
                 },
             },
         },

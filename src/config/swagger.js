@@ -185,6 +185,14 @@ const definition = {
                     attended: { type: "boolean", example: true },
                 },
             },
+            // ── Draw ───────────────────────────────────────────────────────
+            DrawBody: {
+                type: "object",
+                required: ["teamCount"],
+                properties: {
+                    teamCount: { type: "integer", minimum: 2, maximum: 10, example: 2 },
+                },
+            },
             // ── Profile ────────────────────────────────────────────────────
             UpdateProfileBody: {
                 type: "object",
@@ -681,6 +689,57 @@ const definition = {
                     content: { "application/json": { schema: { $ref: "#/components/schemas/EventStatusBody" } } },
                 },
                 responses: { 200: { description: "Status atualizado" } },
+            },
+        },
+
+        // ── Draw ────────────────────────────────────────────────────────────
+        "/courts/{courtId}/events/{eventId}/draw": {
+            post: {
+                tags: ["Draw"],
+                summary: "Sorteia times aleatoriamente para uma pelada (organizador, OWNER do place ou ADMIN)",
+                description:
+                    "Divide os participantes em N times equilibrados usando shuffle aleatório. Não persiste o resultado — cada chamada gera um novo sorteio. Pelada deve estar WAITING ou FULL.",
+                security: [{ PlayerToken: [] }, { OwnerToken: [] }, { AdminToken: [] }],
+                parameters: [
+                    { name: "courtId", in: "path", required: true, schema: { type: "string" } },
+                    { name: "eventId", in: "path", required: true, schema: { type: "string" } },
+                ],
+                requestBody: {
+                    required: true,
+                    content: { "application/json": { schema: { $ref: "#/components/schemas/DrawBody" } } },
+                },
+                responses: {
+                    200: {
+                        description: "Times sorteados",
+                        content: {
+                            "application/json": {
+                                example: {
+                                    success: true,
+                                    data: {
+                                        peladaId: "abc123",
+                                        teamCount: 2,
+                                        totalPlayers: 6,
+                                        teams: [
+                                            {
+                                                name: "Time 1",
+                                                players: [{ id: "u1", name: "João", avatarUrl: null, badge: null }],
+                                            },
+                                            {
+                                                name: "Time 2",
+                                                players: [{ id: "u2", name: "Maria", avatarUrl: null, badge: null }],
+                                            },
+                                        ],
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    401: { description: "Não autenticado" },
+                    403: { description: "Sem permissão" },
+                    404: { description: "Pelada não encontrada" },
+                    409: { description: "Pelada finalizada/cancelada ou jogadores insuficientes" },
+                    422: { description: "teamCount inválido (fora de 2–10)" },
+                },
             },
         },
 

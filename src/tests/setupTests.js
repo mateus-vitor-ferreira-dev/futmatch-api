@@ -7,6 +7,8 @@ export async function truncateAll() {
             "Review",
             "Participation",
             "Pelada",
+            "TournamentDivision",
+            "Tournament",
             "Court",
             "PlaceRequest",
             "Place",

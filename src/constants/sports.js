@@ -13,3 +13,11 @@ export const SPORTS = [
     { id: "BASQUETE", label: "Basquete", icon: "🏀", description: "Quadra de basquete" },
     { id: "TENIS", label: "Tênis", icon: "🎾", description: "Quadra de tênis" },
 ];
+
+
+
+
+
+
+
+

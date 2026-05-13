@@ -23,8 +23,9 @@ export async function setup() {
     await client.connect();
     await client.query(`
         TRUNCATE TABLE
-            "Review", "Participation", "Pelada", "Court",
-            "PlaceRequest", "Place", "Account", "User"
+            "Review", "Participation", "Pelada",
+            "TournamentDivision", "Tournament",
+            "Court", "PlaceRequest", "Place", "Account", "User"
         CASCADE
     `);
     await client.end();

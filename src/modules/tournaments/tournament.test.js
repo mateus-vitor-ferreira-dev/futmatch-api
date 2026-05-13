@@ -486,13 +486,12 @@ describe("Tournaments", () => {
         });
 
         describe("GET /tournaments/:tournamentId/divisions/:divisionId", () => {
-            let division, otherTournament, otherDiv;
+            let division, otherDiv;
 
             beforeAll(async () => {
                 const otherT = await createTournament({ placeId: place.id, createdById: owner.id });
-                [division, otherTournament, otherDiv] = await Promise.all([
+                [division, otherDiv] = await Promise.all([
                     createTournamentDivision({ tournamentId: tournament.id, name: "Misto Amador" }),
-                    Promise.resolve(otherT),
                     createTournamentDivision({ tournamentId: otherT.id, name: "Div Outro" }),
                 ]);
             });

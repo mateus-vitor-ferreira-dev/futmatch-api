@@ -185,6 +185,21 @@ const definition = {
                     attended: { type: "boolean", example: true },
                 },
             },
+            // ── Review ─────────────────────────────────────────────────────
+            ReviewBody: {
+                type: "object",
+                required: ["reviewedId", "stars", "tag"],
+                properties: {
+                    reviewedId: { type: "string", example: "cuid-do-jogador" },
+                    stars: { type: "integer", minimum: 1, maximum: 5, example: 5 },
+                    tag: {
+                        type: "string",
+                        enum: ["CRAQUE_DA_PELADA", "JOGA_FACIL", "PASSA_DE_ANO", "PONTUAL", "FAIR_PLAY", "BOA_COMUNICACAO"],
+                        example: "FAIR_PLAY",
+                    },
+                    comment: { type: "string", maxLength: 300, nullable: true, example: "Ótimo de jogar junto!" },
+                },
+            },
             // ── Tournament ──────────────────────────────────────────────────
             TournamentBody: {
                 type: "object",
@@ -654,6 +669,78 @@ const definition = {
                     content: { "application/json": { schema: { $ref: "#/components/schemas/EventStatusBody" } } },
                 },
                 responses: { 200: { description: "Status atualizado" } },
+            },
+        },
+
+        // ── Reviews ─────────────────────────────────────────────────────────
+        "/courts/{courtId}/events/{eventId}/reviews": {
+            post: {
+                tags: ["Reviews"],
+                summary: "Avalia um participante da pelada (só participantes, só FINISHED)",
+                security: [{ PlayerToken: [] }, { OwnerToken: [] }, { AdminToken: [] }],
+                parameters: [
+                    { name: "courtId", in: "path", required: true, schema: { type: "string" } },
+                    { name: "eventId", in: "path", required: true, schema: { type: "string" } },
+                ],
+                requestBody: {
+                    required: true,
+                    content: { "application/json": { schema: { $ref: "#/components/schemas/ReviewBody" } } },
+                },
+                responses: {
+                    201: { description: "Avaliação criada" },
+                    400: { description: "Auto-avaliação ou avaliado não participou" },
+                    401: { description: "Não autenticado" },
+                    403: { description: "Reviewer não participou da pelada" },
+                    404: { description: "Pelada não encontrada" },
+                    409: { description: "Pelada não finalizada ou avaliação duplicada" },
+                    422: { description: "Dados inválidos (stars fora do range, tag inválida)" },
+                },
+            },
+            get: {
+                tags: ["Reviews"],
+                summary: "Lista todas as avaliações de uma pelada (admin)",
+                security: [{ AdminToken: [] }],
+                parameters: [
+                    { name: "courtId", in: "path", required: true, schema: { type: "string" } },
+                    { name: "eventId", in: "path", required: true, schema: { type: "string" } },
+                ],
+                responses: {
+                    200: { description: "Lista de avaliações" },
+                    401: { description: "Não autenticado" },
+                    403: { description: "Não é admin" },
+                    404: { description: "Pelada não encontrada" },
+                },
+            },
+        },
+        "/courts/{courtId}/events/{eventId}/reviews/progress": {
+            get: {
+                tags: ["Reviews"],
+                summary: "Progresso de avaliações do usuário autenticado na pelada",
+                description:
+                    "Retorna quantos jogadores o usuário já avaliou (`reviewed`), quantos faltam (`pending`) e se completou todos (`completed`).",
+                security: [{ PlayerToken: [] }, { OwnerToken: [] }, { AdminToken: [] }],
+                parameters: [
+                    { name: "courtId", in: "path", required: true, schema: { type: "string" } },
+                    { name: "eventId", in: "path", required: true, schema: { type: "string" } },
+                ],
+                responses: {
+                    200: { description: "Progresso retornado" },
+                    401: { description: "Não autenticado" },
+                    403: { description: "Usuário não participou da pelada" },
+                    404: { description: "Pelada não encontrada" },
+                },
+            },
+        },
+
+        // ── Reviews por usuário ─────────────────────────────────────────────
+        "/users/{userId}/reviews": {
+            get: {
+                tags: ["Reviews"],
+                summary: "Avaliações recebidas por um usuário, com summary (público)",
+                description:
+                    "Retorna `summary` (média de estrelas, total, tags mais frequentes) e lista completa de avaliações recebidas.",
+                parameters: [{ name: "userId", in: "path", required: true, schema: { type: "string" } }],
+                responses: { 200: { description: "Avaliações e summary do usuário" } },
             },
         },
 

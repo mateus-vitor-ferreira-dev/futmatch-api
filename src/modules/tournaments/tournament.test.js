@@ -318,18 +318,23 @@ describe("Tournaments", () => {
     // ─── PATCH /tournaments/:tournamentId/status ─────────────────────────────
 
     describe("PATCH /tournaments/:tournamentId/status", () => {
-        let draftTournament, openTournament;
+        let tDraft, tOpen, tCancel, tInvalidDraft, tInvalidFinished, tInvalidBody, tPlayer;
 
         beforeAll(async () => {
-            [draftTournament, openTournament] = await Promise.all([
+            [tDraft, tOpen, tCancel, tInvalidDraft, tInvalidFinished, tInvalidBody, tPlayer] = await Promise.all([
                 createTournament({ placeId: place.id, createdById: owner.id, status: "DRAFT" }),
                 createTournament({ placeId: place.id, createdById: owner.id, status: "OPEN" }),
+                createTournament({ placeId: place.id, createdById: owner.id, status: "OPEN" }),
+                createTournament({ placeId: place.id, createdById: owner.id, status: "DRAFT" }),
+                createTournament({ placeId: place.id, createdById: owner.id, status: "FINISHED" }),
+                createTournament({ placeId: place.id, createdById: owner.id, status: "DRAFT" }),
+                createTournament({ placeId: place.id, createdById: owner.id, status: "DRAFT" }),
             ]);
         });
 
         it("OWNER transiciona DRAFT → OPEN (200)", async () => {
             const res = await request(app)
-                .patch(`${BASE}/${draftTournament.id}/status`)
+                .patch(`${BASE}/${tDraft.id}/status`)
                 .set("Authorization", ownerToken)
                 .send({ status: "OPEN" });
 
@@ -339,7 +344,7 @@ describe("Tournaments", () => {
 
         it("ADMIN transiciona OPEN → REGISTRATION_CLOSED (200)", async () => {
             const res = await request(app)
-                .patch(`${BASE}/${openTournament.id}/status`)
+                .patch(`${BASE}/${tOpen.id}/status`)
                 .set("Authorization", adminToken)
                 .send({ status: "REGISTRATION_CLOSED" });
 
@@ -348,9 +353,8 @@ describe("Tournaments", () => {
         });
 
         it("OWNER cancela campeonato OPEN (200)", async () => {
-            const t = await createTournament({ placeId: place.id, createdById: owner.id, status: "OPEN" });
             const res = await request(app)
-                .patch(`${BASE}/${t.id}/status`)
+                .patch(`${BASE}/${tCancel.id}/status`)
                 .set("Authorization", ownerToken)
                 .send({ status: "CANCELLED" });
 
@@ -359,9 +363,8 @@ describe("Tournaments", () => {
         });
 
         it("transição inválida retorna 409 (DRAFT → IN_PROGRESS)", async () => {
-            const t = await createTournament({ placeId: place.id, createdById: owner.id, status: "DRAFT" });
             const res = await request(app)
-                .patch(`${BASE}/${t.id}/status`)
+                .patch(`${BASE}/${tInvalidDraft.id}/status`)
                 .set("Authorization", ownerToken)
                 .send({ status: "IN_PROGRESS" });
 
@@ -369,9 +372,8 @@ describe("Tournaments", () => {
         });
 
         it("transição inválida retorna 409 (FINISHED → OPEN)", async () => {
-            const t = await createTournament({ placeId: place.id, createdById: owner.id, status: "FINISHED" });
             const res = await request(app)
-                .patch(`${BASE}/${t.id}/status`)
+                .patch(`${BASE}/${tInvalidFinished.id}/status`)
                 .set("Authorization", ownerToken)
                 .send({ status: "OPEN" });
 
@@ -379,9 +381,8 @@ describe("Tournaments", () => {
         });
 
         it("status inválido no body retorna 422", async () => {
-            const t = await createTournament({ placeId: place.id, createdById: owner.id });
             const res = await request(app)
-                .patch(`${BASE}/${t.id}/status`)
+                .patch(`${BASE}/${tInvalidBody.id}/status`)
                 .set("Authorization", ownerToken)
                 .send({ status: "STATUS_INVALIDO" });
 
@@ -389,9 +390,8 @@ describe("Tournaments", () => {
         });
 
         it("PLAYER retorna 403", async () => {
-            const t = await createTournament({ placeId: place.id, createdById: owner.id });
             const res = await request(app)
-                .patch(`${BASE}/${t.id}/status`)
+                .patch(`${BASE}/${tPlayer.id}/status`)
                 .set("Authorization", playerToken)
                 .send({ status: "OPEN" });
 
@@ -402,66 +402,52 @@ describe("Tournaments", () => {
     // ─── DELETE /tournaments/:tournamentId ───────────────────────────────────
 
     describe("DELETE /tournaments/:tournamentId", () => {
-        it("OWNER exclui campeonato em DRAFT (200)", async () => {
-            const t = await createTournament({ placeId: place.id, createdById: owner.id, status: "DRAFT" });
-            const res = await request(app)
-                .delete(`${BASE}/${t.id}`)
-                .set("Authorization", ownerToken);
+        let tOwner, tAdmin, tOpen, tInProgress, tOtherOwner, tPlayer;
 
+        beforeAll(async () => {
+            [tOwner, tAdmin, tOpen, tInProgress, tOtherOwner, tPlayer] = await Promise.all([
+                createTournament({ placeId: place.id, createdById: owner.id, status: "DRAFT" }),
+                createTournament({ placeId: place.id, createdById: owner.id, status: "DRAFT" }),
+                createTournament({ placeId: place.id, createdById: owner.id, status: "OPEN" }),
+                createTournament({ placeId: place.id, createdById: owner.id, status: "IN_PROGRESS" }),
+                createTournament({ placeId: place.id, createdById: owner.id, status: "DRAFT" }),
+                createTournament({ placeId: place.id, createdById: owner.id, status: "DRAFT" }),
+            ]);
+        });
+
+        it("OWNER exclui campeonato em DRAFT (200)", async () => {
+            const res = await request(app).delete(`${BASE}/${tOwner.id}`).set("Authorization", ownerToken);
             expect(res.status).toBe(200);
-            expect(res.body.data.id).toBe(t.id);
+            expect(res.body.data.id).toBe(tOwner.id);
         });
 
         it("ADMIN exclui campeonato em DRAFT (200)", async () => {
-            const t = await createTournament({ placeId: place.id, createdById: owner.id, status: "DRAFT" });
-            const res = await request(app)
-                .delete(`${BASE}/${t.id}`)
-                .set("Authorization", adminToken);
-
+            const res = await request(app).delete(`${BASE}/${tAdmin.id}`).set("Authorization", adminToken);
             expect(res.status).toBe(200);
         });
 
         it("não pode excluir campeonato OPEN (409)", async () => {
-            const t = await createTournament({ placeId: place.id, createdById: owner.id, status: "OPEN" });
-            const res = await request(app)
-                .delete(`${BASE}/${t.id}`)
-                .set("Authorization", ownerToken);
-
+            const res = await request(app).delete(`${BASE}/${tOpen.id}`).set("Authorization", ownerToken);
             expect(res.status).toBe(409);
         });
 
         it("não pode excluir campeonato IN_PROGRESS (409)", async () => {
-            const t = await createTournament({ placeId: place.id, createdById: owner.id, status: "IN_PROGRESS" });
-            const res = await request(app)
-                .delete(`${BASE}/${t.id}`)
-                .set("Authorization", ownerToken);
-
+            const res = await request(app).delete(`${BASE}/${tInProgress.id}`).set("Authorization", ownerToken);
             expect(res.status).toBe(409);
         });
 
         it("outro OWNER retorna 403", async () => {
-            const t = await createTournament({ placeId: place.id, createdById: owner.id, status: "DRAFT" });
-            const res = await request(app)
-                .delete(`${BASE}/${t.id}`)
-                .set("Authorization", otherOwnerToken);
-
+            const res = await request(app).delete(`${BASE}/${tOtherOwner.id}`).set("Authorization", otherOwnerToken);
             expect(res.status).toBe(403);
         });
 
         it("PLAYER retorna 403", async () => {
-            const t = await createTournament({ placeId: place.id, createdById: owner.id, status: "DRAFT" });
-            const res = await request(app)
-                .delete(`${BASE}/${t.id}`)
-                .set("Authorization", playerToken);
-
+            const res = await request(app).delete(`${BASE}/${tPlayer.id}`).set("Authorization", playerToken);
             expect(res.status).toBe(403);
         });
 
         it("campeonato inexistente retorna 404", async () => {
-            const res = await request(app)
-                .delete(`${BASE}/nao-existe`)
-                .set("Authorization", adminToken);
-
+            const res = await request(app).delete(`${BASE}/nao-existe`).set("Authorization", adminToken);
             expect(res.status).toBe(404);
         });
     });
@@ -500,10 +486,15 @@ describe("Tournaments", () => {
         });
 
         describe("GET /tournaments/:tournamentId/divisions/:divisionId", () => {
-            let division;
+            let division, otherTournament, otherDiv;
 
             beforeAll(async () => {
-                division = await createTournamentDivision({ tournamentId: tournament.id, name: "Misto Amador" });
+                const otherT = await createTournament({ placeId: place.id, createdById: owner.id });
+                [division, otherTournament, otherDiv] = await Promise.all([
+                    createTournamentDivision({ tournamentId: tournament.id, name: "Misto Amador" }),
+                    Promise.resolve(otherT),
+                    createTournamentDivision({ tournamentId: otherT.id, name: "Div Outro" }),
+                ]);
             });
 
             it("retorna divisão existente (público)", async () => {
@@ -518,8 +509,6 @@ describe("Tournaments", () => {
             });
 
             it("retorna 404 quando divisão pertence a outro campeonato", async () => {
-                const other = await createTournament({ placeId: place.id, createdById: owner.id });
-                const otherDiv = await createTournamentDivision({ tournamentId: other.id });
                 const res = await request(app).get(`${BASE}/${tournament.id}/divisions/${otherDiv.id}`);
                 expect(res.status).toBe(404);
             });
@@ -649,50 +638,54 @@ describe("Tournaments", () => {
         });
 
         describe("DELETE /tournaments/:tournamentId/divisions/:divisionId", () => {
+            let dOwner, dAdmin, dOrganizer, dOtherOwner, dPlayer;
+
+            beforeAll(async () => {
+                [dOwner, dAdmin, dOrganizer, dOtherOwner, dPlayer] = await Promise.all([
+                    createTournamentDivision({ tournamentId: tournament.id, name: "Para Deletar Owner" }),
+                    createTournamentDivision({ tournamentId: tournament.id, name: "Para Deletar Admin" }),
+                    createTournamentDivision({ tournamentId: tournamentWithOrganizer.id, name: "Para Deletar Org" }),
+                    createTournamentDivision({ tournamentId: tournament.id, name: "Nao Delete OtherOwner" }),
+                    createTournamentDivision({ tournamentId: tournament.id, name: "Nao Delete Player" }),
+                ]);
+            });
+
             it("OWNER remove divisão (200)", async () => {
-                const div = await createTournamentDivision({ tournamentId: tournament.id, name: "Para Deletar" });
                 const res = await request(app)
-                    .delete(`${BASE}/${tournament.id}/divisions/${div.id}`)
+                    .delete(`${BASE}/${tournament.id}/divisions/${dOwner.id}`)
                     .set("Authorization", ownerToken);
 
                 expect(res.status).toBe(200);
-                expect(res.body.data.id).toBe(div.id);
+                expect(res.body.data.id).toBe(dOwner.id);
             });
 
             it("ADMIN remove divisão (200)", async () => {
-                const div = await createTournamentDivision({ tournamentId: tournament.id, name: "Admin Delete" });
                 const res = await request(app)
-                    .delete(`${BASE}/${tournament.id}/divisions/${div.id}`)
+                    .delete(`${BASE}/${tournament.id}/divisions/${dAdmin.id}`)
                     .set("Authorization", adminToken);
 
                 expect(res.status).toBe(200);
             });
 
             it("organizer remove divisão do próprio campeonato (200)", async () => {
-                const div = await createTournamentDivision({
-                    tournamentId: tournamentWithOrganizer.id,
-                    name: "Organizer Delete",
-                });
                 const res = await request(app)
-                    .delete(`${BASE}/${tournamentWithOrganizer.id}/divisions/${div.id}`)
+                    .delete(`${BASE}/${tournamentWithOrganizer.id}/divisions/${dOrganizer.id}`)
                     .set("Authorization", organizerToken);
 
                 expect(res.status).toBe(200);
             });
 
             it("outro OWNER sem vínculo retorna 403", async () => {
-                const div = await createTournamentDivision({ tournamentId: tournament.id, name: "Nao Delete" });
                 const res = await request(app)
-                    .delete(`${BASE}/${tournament.id}/divisions/${div.id}`)
+                    .delete(`${BASE}/${tournament.id}/divisions/${dOtherOwner.id}`)
                     .set("Authorization", otherOwnerToken);
 
                 expect(res.status).toBe(403);
             });
 
             it("PLAYER retorna 403", async () => {
-                const div = await createTournamentDivision({ tournamentId: tournament.id, name: "Player Delete" });
                 const res = await request(app)
-                    .delete(`${BASE}/${tournament.id}/divisions/${div.id}`)
+                    .delete(`${BASE}/${tournament.id}/divisions/${dPlayer.id}`)
                     .set("Authorization", playerToken);
 
                 expect(res.status).toBe(403);

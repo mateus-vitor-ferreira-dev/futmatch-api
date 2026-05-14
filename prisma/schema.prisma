@@ -126,16 +126,18 @@ enum CompetitionLevel {
 // ---------------------------------------------------------------------------
 
 model User {
-  id        String     @id @default(cuid())
-  name      String
-  email     String     @unique
-  password  String?    // null quando o login é pelo Google
-  avatarUrl String?
-  pixKey    String?
-  role      UserRole   @default(PLAYER)
-  badge     UserBadge?
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id                 String     @id @default(cuid())
+  name               String
+  email              String     @unique
+  password           String?    // null quando o login é pelo Google
+  avatarUrl          String?
+  pixKey             String?
+  role               UserRole   @default(PLAYER)
+  badge              UserBadge?
+  resetToken         String?    @unique
+  resetTokenExpiry   DateTime?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
 
   accounts              Account[]
   placesOwned           Place[]

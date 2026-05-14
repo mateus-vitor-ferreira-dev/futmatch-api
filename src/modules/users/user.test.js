@@ -204,6 +204,90 @@ describe("User Profile", () => {
         });
     });
 
+    // ─── GET /users/me/history ───────────────────────────────────────────────
+
+    describe("GET /users/me/history", () => {
+        let histPlayer, histOrganizer, histPlace, histCourt;
+        let histPlayerToken, histOrganizerToken;
+
+        beforeAll(async () => {
+            [histPlayer, histOrganizer] = await Promise.all([
+                createUser({ email: "hist-player@test.com", name: "Hist Player" }),
+                createUser({ email: "hist-organizer@test.com", name: "Hist Organizer" }),
+            ]);
+            histPlayerToken = tokenFor(histPlayer);
+            histOrganizerToken = tokenFor(histOrganizer);
+
+            histPlace = await createPlace({ ownerId: admin.id });
+            histCourt = await createCourt({ placeId: histPlace.id });
+        });
+
+        it("retorna lista vazia quando não há histórico (200)", async () => {
+            const res = await request(app).get("/users/me/history").set("Authorization", histPlayerToken);
+            expect(res.status).toBe(200);
+            expect(res.body.data).toEqual([]);
+        });
+
+        it("retorna peladas FINISHED e CANCELLED onde participou (200)", async () => {
+            const finished = await createEvent({ courtId: histCourt.id, organizerId: histOrganizer.id, status: "FINISHED" });
+            const cancelled = await createEvent({ courtId: histCourt.id, organizerId: histOrganizer.id, status: "CANCELLED" });
+            const waiting = await createEvent({ courtId: histCourt.id, organizerId: histOrganizer.id, status: "WAITING" });
+
+            await Promise.all([
+                prisma.participation.create({ data: { peladaId: finished.id, userId: histPlayer.id } }),
+                prisma.participation.create({ data: { peladaId: cancelled.id, userId: histPlayer.id } }),
+                prisma.participation.create({ data: { peladaId: waiting.id, userId: histPlayer.id } }),
+            ]);
+
+            const res = await request(app).get("/users/me/history").set("Authorization", histPlayerToken);
+
+            expect(res.status).toBe(200);
+            const ids = res.body.data.map((p) => p.id);
+            expect(ids).toContain(finished.id);
+            expect(ids).toContain(cancelled.id);
+            expect(ids).not.toContain(waiting.id);
+        });
+
+        it("cada item tem role e campos da pelada", async () => {
+            const res = await request(app).get("/users/me/history").set("Authorization", histPlayerToken);
+            expect(res.status).toBe(200);
+            const item = res.body.data[0];
+            expect(item).toHaveProperty("role");
+            expect(item).toHaveProperty("court");
+            expect(item).toHaveProperty("organizer");
+            expect(item).toHaveProperty("_count");
+            expect(item).toHaveProperty("attended");
+        });
+
+        it("retorna peladas organizadas com role=organizer (200)", async () => {
+            const orgFinished = await createEvent({
+                courtId: histCourt.id,
+                organizerId: histOrganizer.id,
+                status: "FINISHED",
+            });
+
+            const res = await request(app)
+                .get("/users/me/history?role=organizer")
+                .set("Authorization", histOrganizerToken);
+
+            expect(res.status).toBe(200);
+            expect(res.body.data.some((p) => p.id === orgFinished.id)).toBe(true);
+            expect(res.body.data.every((p) => p.role === "organizer")).toBe(true);
+        });
+
+        it("role inválido retorna 422", async () => {
+            const res = await request(app)
+                .get("/users/me/history?role=invalido")
+                .set("Authorization", histPlayerToken);
+            expect(res.status).toBe(422);
+        });
+
+        it("sem autenticação retorna 401", async () => {
+            const res = await request(app).get("/users/me/history");
+            expect(res.status).toBe(401);
+        });
+    });
+
     // ─── Badge automático ────────────────────────────────────────────────────
 
     describe("Badge automático", () => {

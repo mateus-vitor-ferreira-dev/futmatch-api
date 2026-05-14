@@ -4,6 +4,10 @@ import HTTP from "../../constants/httpStatus.js";
 import { USER_MESSAGES } from "../../constants/messages/user.messages.js";
 import * as repo from "./user.repository.js";
 
+export async function getHistory(userId, filters) {
+    return repo.findHistory(userId, filters);
+}
+
 export async function getProfile(userId) {
     const profile = await repo.getPublicProfile(userId);
     if (!profile) {

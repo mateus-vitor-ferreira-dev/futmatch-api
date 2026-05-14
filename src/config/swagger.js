@@ -832,6 +832,56 @@ const definition = {
                 },
             },
         },
+        "/users/me/history": {
+            get: {
+                tags: ["Profile"],
+                summary: "Histórico de peladas passadas do usuário autenticado",
+                description:
+                    "Retorna peladas com status `FINISHED` ou `CANCELLED` em que o usuário participou ou organizou, ordenadas da mais recente para a mais antiga. Cada item inclui `role` (`organizer` ou `participant`) e `attended`.",
+                security: [{ PlayerToken: [] }, { OwnerToken: [] }, { AdminToken: [] }],
+                parameters: [
+                    {
+                        name: "role",
+                        in: "query",
+                        required: false,
+                        schema: { type: "string", enum: ["organizer", "participant"] },
+                        description: "Filtra por papel do usuário na pelada",
+                    },
+                ],
+                responses: {
+                    200: {
+                        description: "Lista de peladas passadas",
+                        content: {
+                            "application/json": {
+                                example: {
+                                    success: true,
+                                    data: [
+                                        {
+                                            id: "abc123",
+                                            date: "2026-04-10T18:00:00.000Z",
+                                            status: "FINISHED",
+                                            maxPlayers: 10,
+                                            role: "participant",
+                                            attended: true,
+                                            court: {
+                                                id: "c1",
+                                                name: "Quadra 1",
+                                                type: "FUTSAL",
+                                                place: { id: "p1", name: "Arena FutMatch", city: "São Paulo", neighborhood: "Centro", state: "SP" },
+                                            },
+                                            organizer: { id: "u1", name: "João", avatarUrl: null },
+                                            _count: { participations: 8 },
+                                        },
+                                    ],
+                                },
+                            },
+                        },
+                    },
+                    401: { description: "Não autenticado" },
+                    422: { description: "role inválido" },
+                },
+            },
+        },
         "/users/{userId}": {
             get: {
                 tags: ["Profile"],

@@ -1,5 +1,9 @@
 import * as yup from "yup";
 
+export const historyQuerySchema = yup.object({
+    role: yup.string().oneOf(["organizer", "participant"], "role deve ser organizer ou participant"),
+});
+
 export const updateProfileSchema = yup.object({
     name: yup.string().trim().min(2, "Nome deve ter ao menos 2 caracteres"),
     avatarUrl: yup.string().url("avatarUrl deve ser uma URL válida").nullable(),

@@ -20,11 +20,24 @@ class SSEManager {
 
     send(userId, data) {
         const conns = this.clients.get(userId);
-        if (!conns) return;
+        if (!conns || conns.size === 0) return;
+
         const payload = `data: ${JSON.stringify(data)}\n\n`;
+        const dead = [];
+
         for (const res of conns) {
-            res.write(payload);
+            try {
+                res.write(payload);
+            } catch {
+                // Conexão fechada antes do evento de close ser disparado
+                dead.push(res);
+            }
         }
+
+        for (const res of dead) {
+            conns.delete(res);
+        }
+        if (conns.size === 0) this.clients.delete(userId);
     }
 }
 

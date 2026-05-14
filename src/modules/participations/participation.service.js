@@ -51,7 +51,7 @@ export async function joinPelada(eventId, courtId, userId) {
         const notifyBody = becameFull
             ? "Todas as vagas da sua pelada foram preenchidas"
             : `${joiner.name} entrou na sua pelada`;
-        notificationService.dispatch(event.organizerId, notifyType, notifyTitle, notifyBody, { peladaId: eventId }).catch(() => {});
+        notificationService.dispatch(event.organizerId, notifyType, notifyTitle, notifyBody, { peladaId: eventId }).catch((err) => console.error("[bg]", err.message));
     }
 
     return participation;
@@ -94,7 +94,7 @@ export async function leavePelada(eventId, courtId, userId, reason) {
     if (event.organizerId !== userId) {
         notificationService
             .dispatch(event.organizerId, "PLAYER_LEFT", "Jogador saiu da pelada", `${user.name} saiu da sua pelada`, { peladaId: eventId })
-            .catch(() => {});
+            .catch((err) => console.error("[bg]", err.message));
     }
 
     return {
@@ -127,11 +127,11 @@ export async function confirmAttendance(eventId, courtId, targetUserId, attended
     }
 
     const updated = await participationRepository.updateAttendance(eventId, targetUserId, attended);
-    recalculateBadge(targetUserId).catch(() => {});
+    recalculateBadge(targetUserId).catch((err) => console.error("[bg]", err.message));
 
     const title = attended ? "Presença confirmada" : "Presença desmarcada";
     const body = attended ? "Sua presença na pelada foi confirmada" : "Sua presença na pelada foi desmarcada";
-    notificationService.dispatch(targetUserId, "ATTENDANCE_CONFIRMED", title, body, { peladaId: eventId }).catch(() => {});
+    notificationService.dispatch(targetUserId, "ATTENDANCE_CONFIRMED", title, body, { peladaId: eventId }).catch((err) => console.error("[bg]", err.message));
 
     return updated;
 }

@@ -1196,6 +1196,89 @@ const definition = {
             },
         },
 
+        // ── Notifications ───────────────────────────────────────────────────
+        "/notifications/stream": {
+            get: {
+                tags: ["Notifications"],
+                summary: "Stream de notificações em tempo real (SSE)",
+                description:
+                    "Abre uma conexão Server-Sent Events persistente. Cada notificação é enviada como `data: {...}\\n\\n`. O servidor envia um heartbeat (`: heartbeat`) a cada 30s para manter a conexão viva.",
+                security: [{ PlayerToken: [] }, { OwnerToken: [] }, { AdminToken: [] }],
+                responses: {
+                    200: { description: "Conexão SSE aberta (text/event-stream)" },
+                    401: { description: "Não autenticado" },
+                },
+            },
+        },
+        "/notifications": {
+            get: {
+                tags: ["Notifications"],
+                summary: "Lista notificações do usuário autenticado",
+                description: "Retorna as últimas 50 notificações e o total de não lidas (`unreadCount`). Use `?unread=true` para trazer apenas as não lidas.",
+                security: [{ PlayerToken: [] }, { OwnerToken: [] }, { AdminToken: [] }],
+                parameters: [
+                    {
+                        name: "unread",
+                        in: "query",
+                        required: false,
+                        schema: { type: "boolean" },
+                        description: "Se true, retorna apenas notificações não lidas",
+                    },
+                ],
+                responses: {
+                    200: {
+                        description: "Lista de notificações",
+                        content: {
+                            "application/json": {
+                                example: {
+                                    success: true,
+                                    data: {
+                                        unreadCount: 2,
+                                        notifications: [
+                                            {
+                                                id: "notif123",
+                                                type: "PLAYER_JOINED",
+                                                title: "Novo jogador na pelada",
+                                                body: "João entrou na sua pelada",
+                                                data: { peladaId: "abc123" },
+                                                read: false,
+                                                createdAt: "2026-05-14T18:00:00.000Z",
+                                            },
+                                        ],
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    401: { description: "Não autenticado" },
+                },
+            },
+        },
+        "/notifications/read-all": {
+            patch: {
+                tags: ["Notifications"],
+                summary: "Marca todas as notificações como lidas",
+                security: [{ PlayerToken: [] }, { OwnerToken: [] }, { AdminToken: [] }],
+                responses: {
+                    204: { description: "Todas marcadas como lidas" },
+                    401: { description: "Não autenticado" },
+                },
+            },
+        },
+        "/notifications/{id}/read": {
+            patch: {
+                tags: ["Notifications"],
+                summary: "Marca uma notificação como lida",
+                security: [{ PlayerToken: [] }, { OwnerToken: [] }, { AdminToken: [] }],
+                parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+                responses: {
+                    204: { description: "Notificação marcada como lida" },
+                    401: { description: "Não autenticado" },
+                    404: { description: "Notificação não encontrada" },
+                },
+            },
+        },
+
         // ── Admin ───────────────────────────────────────────────────────────
         "/admin/users": {
             get: {

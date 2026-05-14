@@ -4,6 +4,7 @@ import { PARTICIPATION_MESSAGES } from "../../constants/messages/participation.m
 import { recalculateBadge } from "../../utils/badge.js";
 import * as participationRepository from "./participation.repository.js";
 import * as eventRepository from "../events/event.repository.js";
+import * as notificationService from "../notifications/notification.service.js";
 
 async function getValidEvent(eventId, courtId) {
     const event = await eventRepository.findById(eventId);
@@ -32,11 +33,25 @@ export async function joinPelada(eventId, courtId, userId) {
         throw new AppError(PARTICIPATION_MESSAGES.ALREADY_JOINED, HTTP.CONFLICT, "ALREADY_JOINED");
     }
 
-    const participation = await participationRepository.create(eventId, userId);
+    const [participation, joiner] = await Promise.all([
+        participationRepository.create(eventId, userId),
+        participationRepository.findUserById(userId),
+    ]);
 
     const total = await participationRepository.count(eventId);
-    if (total >= event.maxPlayers) {
+    const becameFull = total >= event.maxPlayers;
+
+    if (becameFull) {
         await participationRepository.updatePeladaStatus(eventId, "FULL");
+    }
+
+    if (event.organizerId !== userId) {
+        const notifyType = becameFull ? "PELADA_FULL" : "PLAYER_JOINED";
+        const notifyTitle = becameFull ? "Pelada cheia!" : "Novo jogador na pelada";
+        const notifyBody = becameFull
+            ? "Todas as vagas da sua pelada foram preenchidas"
+            : `${joiner.name} entrou na sua pelada`;
+        notificationService.dispatch(event.organizerId, notifyType, notifyTitle, notifyBody, { peladaId: eventId }).catch(() => {});
     }
 
     return participation;
@@ -76,6 +91,12 @@ export async function leavePelada(eventId, courtId, userId, reason) {
 
     const remaining = await participationRepository.count(eventId);
 
+    if (event.organizerId !== userId) {
+        notificationService
+            .dispatch(event.organizerId, "PLAYER_LEFT", "Jogador saiu da pelada", `${user.name} saiu da sua pelada`, { peladaId: eventId })
+            .catch(() => {});
+    }
+
     return {
         user,
         pelada: { id: event.id, date: event.date, maxPlayers: event.maxPlayers },
@@ -107,6 +128,11 @@ export async function confirmAttendance(eventId, courtId, targetUserId, attended
 
     const updated = await participationRepository.updateAttendance(eventId, targetUserId, attended);
     recalculateBadge(targetUserId).catch(() => {});
+
+    const title = attended ? "Presença confirmada" : "Presença desmarcada";
+    const body = attended ? "Sua presença na pelada foi confirmada" : "Sua presença na pelada foi desmarcada";
+    notificationService.dispatch(targetUserId, "ATTENDANCE_CONFIRMED", title, body, { peladaId: eventId }).catch(() => {});
+
     return updated;
 }
 

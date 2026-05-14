@@ -2,6 +2,8 @@ import { AppError } from "../../utils/AppError.js";
 import HTTP from "../../constants/httpStatus.js";
 import { EVENT_MESSAGES } from "../../constants/messages/event.messages.js";
 import * as eventRepository from "./event.repository.js";
+import * as participationRepository from "../participations/participation.repository.js";
+import * as notificationService from "../notifications/notification.service.js";
 
 export function listByCourt(courtId, filters) {
     return eventRepository.findAllByCourt(courtId, filters);
@@ -62,10 +64,31 @@ export async function updateEventStatus(event, status, actorId) {
         throw new AppError(EVENT_MESSAGES.ALREADY_FINISHED, HTTP.UNPROCESSABLE_ENTITY, "EVENT_ALREADY_FINISHED");
     }
 
-    const [updated, actor] = await Promise.all([
-        eventRepository.update(event.id, { status }),
-        eventRepository.findUserById(actorId),
+    const [[updated, actor], participants] = await Promise.all([
+        Promise.all([
+            eventRepository.update(event.id, { status }),
+            eventRepository.findUserById(actorId),
+        ]),
+        (status === "CANCELLED" || status === "FINISHED")
+            ? participationRepository.findAllByPelada(event.id)
+            : Promise.resolve([]),
     ]);
+
+    if (participants.length > 0) {
+        const courtName = event.court?.name ?? "quadra";
+        const isCancelled = status === "CANCELLED";
+        const type = isCancelled ? "PELADA_CANCELLED" : "PELADA_FINISHED";
+        const title = isCancelled ? "Pelada cancelada" : "Pelada finalizada";
+        const body = isCancelled
+            ? `A pelada em ${courtName} foi cancelada`
+            : `A pelada em ${courtName} foi finalizada. Avalie seus colegas!`;
+
+        for (const { userId } of participants) {
+            if (userId === actorId) continue;
+            notificationService.dispatch(userId, type, title, body, { peladaId: event.id }).catch(() => {});
+        }
+    }
+
     return { ...updated, updatedBy: { id: actor.id, name: actor.name, role: actor.role } };
 }
 

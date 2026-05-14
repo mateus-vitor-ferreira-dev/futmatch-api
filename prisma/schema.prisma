@@ -64,6 +64,15 @@ enum CourtStatus {
   CLOSED
 }
 
+enum NotificationType {
+  PLAYER_JOINED
+  PLAYER_LEFT
+  PELADA_FULL
+  PELADA_CANCELLED
+  PELADA_FINISHED
+  ATTENDANCE_CONFIRMED
+}
+
 enum PlaceRequestStatus {
   PENDING
   APPROVED
@@ -137,6 +146,7 @@ model User {
   reviewsReceived       Review[]        @relation("ReviewsReceived")
   tournamentsCreated    Tournament[]    @relation("TournamentsCreated")
   tournamentsOrganized  Tournament[]    @relation("TournamentsOrganized")
+  notifications         Notification[]
 }
 
 // Armazena contas OAuth (Google) e permite login híbrido
@@ -267,6 +277,19 @@ model Review {
   reviewed User   @relation("ReviewsReceived", fields: [reviewedId], references: [id])
 
   @@unique([peladaId, reviewerId, reviewedId])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String
+  data      Json?
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // Campeonato realizado em um Place

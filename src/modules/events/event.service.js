@@ -85,7 +85,7 @@ export async function updateEventStatus(event, status, actorId) {
 
         for (const { userId } of participants) {
             if (userId === actorId) continue;
-            notificationService.dispatch(userId, type, title, body, { peladaId: event.id }).catch(() => {});
+            notificationService.dispatch(userId, type, title, body, { peladaId: event.id }).catch((err) => console.error("[bg]", err.message));
         }
     }
 

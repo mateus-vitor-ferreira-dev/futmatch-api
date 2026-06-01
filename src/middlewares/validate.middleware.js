@@ -7,7 +7,11 @@ export function validate(schema) {
             req.body = await schema.validate(req.body, { abortEarly: false, stripUnknown: true });
             next();
         } catch (error) {
-            throw new AppError(error.errors.join(", "), HTTP.UNPROCESSABLE_ENTITY, "VALIDATION_ERROR");
+            next(new AppError(
+                error.errors?.join(", ") ?? "Dados inválidos na requisição",
+                HTTP.UNPROCESSABLE_ENTITY,
+                "VALIDATION_ERROR",
+            ));
         }
     };
 }
@@ -18,7 +22,11 @@ export function validateQuery(schema) {
             req.validatedQuery = await schema.validate(req.query, { abortEarly: false, stripUnknown: true });
             next();
         } catch (error) {
-            throw new AppError(error.errors.join(", "), HTTP.UNPROCESSABLE_ENTITY, "VALIDATION_ERROR");
+            next(new AppError(
+                error.errors?.join(", ") ?? "Parâmetros de consulta inválidos",
+                HTTP.UNPROCESSABLE_ENTITY,
+                "VALIDATION_ERROR",
+            ));
         }
     };
 }

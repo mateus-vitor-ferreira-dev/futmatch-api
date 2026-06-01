@@ -21,3 +21,14 @@ export const me = asyncHandler(async (req, res) => {
     const user = await authService.getMe(req.user.sub);
     return success(res, user);
 });
+
+export const forgotPassword = asyncHandler(async (req, res) => {
+    await authService.forgotPassword(req.body);
+    // Sempre retorna sucesso — não revela se o e-mail existe
+    return success(res, { message: "Se o e-mail estiver cadastrado, você receberá um link em breve." });
+});
+
+export const resetPassword = asyncHandler(async (req, res) => {
+    await authService.resetPassword(req.body);
+    return success(res, { message: "Senha redefinida com sucesso." });
+});

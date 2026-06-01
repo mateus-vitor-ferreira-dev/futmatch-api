@@ -12,14 +12,14 @@ const ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://localhost:5174",
     "http://localhost:5175",
+    "http://localhost:5176",
 ].filter(Boolean);
 
 const app = express();
 
-app.use(helmet({ contentSecurityPolicy: false }));
+app.use(helmet({ contentSecurityPolicy: false, crossOriginOpenerPolicy: false }));
 app.use(cors({
     origin: (origin, callback) => {
-        // Permite requests sem origin (Postman, curl, server-to-server)
         if (!origin || ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
         callback(new Error(`CORS: origem não permitida — ${origin}`));
     },

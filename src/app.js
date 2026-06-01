@@ -8,7 +8,7 @@ import routes from "./routes/index.js";
 
 const app = express();
 
-app.use(helmet({ contentSecurityPolicy: false }));
+app.use(helmet({ contentSecurityPolicy: false, crossOriginOpenerPolicy: false }));
 app.use(cors());
 app.use(express.json());
 

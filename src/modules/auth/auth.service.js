@@ -48,13 +48,27 @@ export async function login({ email, password }) {
 }
 
 export async function googleAuth({ idToken }) {
-    const ticket = await googleClient.verifyIdToken({
-        idToken,
-        audience: env.GOOGLE_CLIENT_ID,
-    });
+    if (!idToken) {
+        throw new AppError("Token Google ausente", HTTP.BAD_REQUEST, "MISSING_GOOGLE_TOKEN");
+    }
 
-    const payload = ticket.getPayload();
-    const { sub, name, email, picture } = payload;
+    let sub, name, email, picture;
+
+    if (idToken.startsWith("ya29.")) {
+        // Access token — troca pelo userinfo do Google
+        const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+            headers: { Authorization: `Bearer ${idToken}` },
+        });
+        if (!res.ok) throw new AppError("Token Google inválido", HTTP.UNAUTHORIZED, "INVALID_GOOGLE_TOKEN");
+        ({ sub, name, email, picture } = await res.json());
+    } else {
+        // ID token (JWT)
+        const ticket = await googleClient.verifyIdToken({
+            idToken,
+            audience: env.GOOGLE_CLIENT_ID,
+        });
+        ({ sub, name, email, picture } = ticket.getPayload());
+    }
 
     let user = await prisma.user.findUnique({ where: { email } });
 

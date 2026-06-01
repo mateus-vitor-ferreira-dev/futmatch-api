@@ -70,7 +70,7 @@ router.use((_req, res) => {
     res.status(404).json({
         success: false,
         message: "Rota não encontrada",
-        error: "404 Not Found",
+        code: "NOT_FOUND",
     });
 });
 

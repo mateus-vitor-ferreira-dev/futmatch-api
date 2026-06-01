@@ -40,7 +40,7 @@ export async function createReview(peladaId, reviewerId, data) {
 
     const review = await repo.create({ peladaId, reviewerId, reviewedId, stars, tag, comment: comment ?? null });
     // dispara em background — não bloqueia a resposta
-    recalculateBadge(reviewedId).catch(() => {});
+    recalculateBadge(reviewedId).catch((err) => console.error("[bg]", err.message));
     return review;
 }
 
